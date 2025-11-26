@@ -1,0 +1,299 @@
+"use client";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { RecentEquipment } from "@/types";
+import { EquipmentStatus } from "@prisma/client";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getPaginationRowModel,
+  flexRender,
+  SortingState,
+  ColumnDef,
+} from "@tanstack/react-table";
+import { useState } from "react";
+import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
+interface RecentEquipmentTableProps {
+  equipment: RecentEquipment[];
+}
+
+const STATUS_STYLES: Record<
+  EquipmentStatus,
+  { bg: string; text: string; label: string }
+> = {
+  AVAILABLE: {
+    bg: "bg-green-100",
+    text: "text-green-800",
+    label: "Available",
+  },
+  IN_USE: {
+    bg: "bg-yellow-100",
+    text: "text-yellow-800",
+    label: "In Use",
+  },
+  NEEDS_REPAIR: {
+    bg: "bg-orange-100",
+    text: "text-orange-800",
+    label: "Needs Repair",
+  },
+  DISCARDED: {
+    bg: "bg-red-100",
+    text: "text-red-800",
+    label: "Discarded",
+  },
+};
+
+function StatusBadge({ status }: { status: EquipmentStatus }) {
+  const style = STATUS_STYLES[status];
+  return (
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${style.bg} ${style.text}`}
+    >
+      {style.label}
+    </span>
+  );
+}
+
+export function RecentEquipmentTable({ equipment }: RecentEquipmentTableProps) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const columns: ColumnDef<RecentEquipment>[] = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="hover:bg-transparent"
+          >
+            Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        return (
+          <Link
+            href={`/dashboard/inventory/${row.original.id}`}
+            className="font-medium text-blue-600 hover:underline"
+          >
+            {row.getValue("name")}
+          </Link>
+        );
+      },
+    },
+    {
+      accessorKey: "type",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="hover:bg-transparent"
+          >
+            Type
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="hover:bg-transparent"
+          >
+            Status
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        return <StatusBadge status={row.getValue("status")} />;
+      },
+    },
+    {
+      accessorKey: "purchaseDate",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="hover:bg-transparent"
+          >
+            Purchase Date
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const date = new Date(row.getValue("purchaseDate"));
+        return date.toLocaleDateString();
+      },
+    },
+    {
+      accessorKey: "department.name",
+      header: "Department",
+      cell: ({ row }) => {
+        return row.original.department.name;
+      },
+    },
+  ];
+
+  const table = useReactTable({
+    data: equipment,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    state: {
+      sorting,
+    },
+    initialState: {
+      pagination: {
+        pageSize: 5,
+      },
+    },
+  });
+
+  if (equipment.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Equipment</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-[200px] text-muted-foreground">
+            No equipment added yet
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Equipment</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-between space-x-2 py-4">
+          <div className="text-sm text-muted-foreground">
+            Showing{" "}
+            {table.getState().pagination.pageIndex *
+              table.getState().pagination.pageSize +
+              1}{" "}
+            to{" "}
+            {Math.min(
+              (table.getState().pagination.pageIndex + 1) *
+                table.getState().pagination.pageSize,
+              equipment.length
+            )}{" "}
+            of {equipment.length} entries
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function RecentEquipmentTableSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Equipment</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-12 bg-gray-200 rounded animate-pulse" />
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

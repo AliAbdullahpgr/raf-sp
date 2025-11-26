@@ -79,7 +79,7 @@
     - Ensure responsive design across all screen sizes
     - _Requirements: 1.4, 1.5, 10.1_
 
-- [ ] 6. Set up dashboard layout and navigation
+- [x] 6. Set up dashboard layout and navigation
 
   - Create app/dashboard/layout.tsx with sidebar and header
   - Build Sidebar component with role-based menu items
@@ -88,9 +88,9 @@
   - Add active route highlighting in navigation
   - _Requirements: 3.1, 3.2_
 
-- [ ] 7. Implement dashboard statistics and overview
+- [x] 7. Implement dashboard statistics and overview
 
-  - [ ] 7.1 Create server actions for dashboard data
+  - [x] 7.1 Create server actions for dashboard data
 
     - Implement getDashboardStats server action with department filtering
     - Add Prisma queries for equipment counts by status
@@ -99,7 +99,7 @@
     - Add role-based data filtering (admin vs dept_head)
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-  - [ ] 7.2 Build dashboard overview page
+  - [x] 7.2 Build dashboard overview page
 
     - Create app/dashboard/page.tsx with stats grid
     - Build StatsOverview component with metric cards
@@ -108,7 +108,7 @@
     - Display role-appropriate data based on user permissions
     - _Requirements: 6.4, 6.5_
 
-  - [ ] 7.3 Create data visualization charts
+  - [x] 7.3 Create data visualization charts
 
     - Install and configure Recharts library
     - Build EquipmentStatusChart component with Pie Chart
@@ -118,7 +118,7 @@
     - Style charts with brand colors
     - _Requirements: 6.1, 6.2_
 
-  - [ ] 7.4 Build recent equipment table
+  - [x] 7.4 Build recent equipment table
     - Create RecentEquipmentTable component with TanStack Table
     - Add sortable columns for name, type, status, date
     - Implement status badges with color coding
@@ -126,9 +126,9 @@
     - Link table rows to equipment detail pages
     - _Requirements: 6.3_
 
-- [ ] 8. Implement equipment inventory management
+- [x] 8. Implement equipment inventory management
 
-  - [ ] 8.1 Create equipment CRUD server actions
+  - [x] 8.1 Create equipment CRUD server actions
 
     - Implement createEquipment server action with validation
     - Create updateEquipment server action with authorization check
@@ -137,7 +137,7 @@
     - Implement error handling and success responses
     - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-  - [ ] 8.2 Build equipment form component
+  - [x] 8.2 Build equipment form component
 
     - Create EquipmentForm component with React Hook Form
     - Add input fields for name, type, status, purchase date
@@ -147,7 +147,7 @@
     - Display validation errors inline
     - _Requirements: 4.1, 4.2, 4.4, 5.1, 5.2_
 
-  - [ ] 8.3 Create equipment inventory page
+  - [x] 8.3 Create equipment inventory page
 
     - Build app/dashboard/inventory/page.tsx
     - Create EquipmentTable component with full CRUD operations
@@ -157,7 +157,7 @@
     - Include inline edit and delete actions
     - _Requirements: 4.1, 4.2, 4.3, 5.3_
 
-  - [ ] 8.4 Implement equipment detail page
+  - [x] 8.4 Implement equipment detail page
     - Create app/dashboard/inventory/[id]/page.tsx
     - Display full equipment information
     - Show equipment image with fallback
@@ -165,9 +165,9 @@
     - Include maintenance log section
     - _Requirements: 4.1, 4.2, 4.3, 7.2_
 
-- [ ] 9. Set up file storage and image uploads
+- [x] 9. Set up file storage and image uploads
 
-  - [ ] 9.1 Configure Supabase Storage
+  - [x] 9.1 Configure Supabase Storage
 
     - Create Supabase project and storage bucket
     - Configure bucket policies for authenticated uploads
@@ -175,7 +175,7 @@
     - Set up environment variables for Supabase credentials
     - _Requirements: 4.5_
 
-  - [ ] 9.2 Create file upload API and utilities
+  - [x] 9.2 Create file upload API and utilities
 
     - Build POST /api/upload route for image uploads
     - Implement file type validation (images only)
@@ -184,7 +184,7 @@
     - Return public URL after successful upload
     - _Requirements: 4.5_
 
-  - [ ] 9.3 Add image upload to equipment form
+  - [x] 9.3 Add image upload to equipment form
     - Create ImageUpload component with drag-and-drop
     - Add image preview functionality
     - Integrate with /api/upload endpoint
