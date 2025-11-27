@@ -46,11 +46,13 @@ export function EquipmentStatusChart({ stats }: EquipmentStatusChartProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Equipment Status Distribution</CardTitle>
+    <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg font-semibold text-gray-900">
+          Equipment Status Distribution
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 lg:p-6">
+      <CardContent className="p-6 pt-0">
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie

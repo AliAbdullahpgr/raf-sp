@@ -73,10 +73,10 @@ export function Sidebar({ userRole = "DEPT_HEAD" }: SidebarProps) {
             href={item.href}
             onClick={() => setIsMobileMenuOpen(false)}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
               isActive
-                ? "bg-[#134866] text-white"
-                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                ? "bg-[#2678E7] text-white"
+                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:scale-105"
             )}
           >
             <item.icon className="h-5 w-5" />
@@ -116,14 +116,14 @@ export function Sidebar({ userRole = "DEPT_HEAD" }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-40 h-screen w-64 bg-white border-r border-gray-200 transition-transform lg:translate-x-0",
+          "fixed top-0 left-0 z-40 h-screen w-64 bg-white border-r border-gray-200 shadow-sm transition-transform lg:translate-x-0",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center gap-2 px-6 py-5 border-b border-gray-200">
-            <div className="w-8 h-8 bg-[#134866] rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-[#2678E7] rounded-lg flex items-center justify-center">
               <Package className="h-5 w-5 text-white" />
             </div>
             <div>

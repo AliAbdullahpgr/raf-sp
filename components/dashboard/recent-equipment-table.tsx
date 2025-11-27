@@ -88,7 +88,7 @@ export function RecentEquipmentTable({ equipment }: RecentEquipmentTableProps) {
         return (
           <Link
             href={`/dashboard/inventory/${row.original.id}`}
-            className="font-medium text-blue-600 hover:underline"
+            className="font-medium text-[#2678E7] hover:underline"
           >
             {row.getValue("name")}
           </Link>
@@ -189,19 +189,24 @@ export function RecentEquipmentTable({ equipment }: RecentEquipmentTableProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent Equipment</CardTitle>
+    <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg font-semibold text-gray-900">
+          Recent Equipment
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6 pt-0">
         <div className="rounded-md border overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
+                  <TableRow key={headerGroup.id} className="bg-gray-50">
                     {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id} className="whitespace-nowrap">
+                      <TableHead
+                        key={header.id}
+                        className="whitespace-nowrap font-semibold text-gray-700"
+                      >
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -216,7 +221,7 @@ export function RecentEquipmentTable({ equipment }: RecentEquipmentTableProps) {
               <TableBody>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
+                    <TableRow key={row.id} className="hover:bg-gray-50">
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id} className="whitespace-nowrap">
                           {flexRender(
@@ -244,7 +249,7 @@ export function RecentEquipmentTable({ equipment }: RecentEquipmentTableProps) {
 
         {/* Pagination Controls */}
         <div className="flex flex-col sm:flex-row items-center justify-between space-y-2 sm:space-y-0 sm:space-x-2 py-4">
-          <div className="text-sm text-muted-foreground text-center sm:text-left">
+          <div className="text-sm text-gray-600 text-center sm:text-left">
             Showing{" "}
             {table.getState().pagination.pageIndex *
               table.getState().pagination.pageSize +

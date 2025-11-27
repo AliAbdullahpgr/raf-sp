@@ -36,28 +36,44 @@ export function EquipmentTypeChart({ stats }: EquipmentTypeChartProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Equipment Distribution by Type</CardTitle>
+    <Card className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow duration-200">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg font-semibold text-gray-900">
+          Equipment Distribution by Type
+        </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 lg:p-6">
+      <CardContent className="p-6 pt-0">
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
             <XAxis
               dataKey="type"
-              angle={window.innerWidth > 640 ? -45 : -90}
+              angle={-45}
               textAnchor="end"
-              height={window.innerWidth > 640 ? 80 : 100}
+              height={100}
               interval={0}
-              fontSize={window.innerWidth > 640 ? 12 : 10}
+              fontSize={10}
+              stroke="#64748b"
+              tick={{ fontSize: 10 }}
+              tickFormatter={(value) => {
+                // Truncate long text and add ellipsis
+                return value.length > 15
+                  ? `${value.substring(0, 12)}...`
+                  : value;
+              }}
             />
-            <YAxis fontSize={window.innerWidth > 640 ? 12 : 10} />
-            <Tooltip />
+            <YAxis
+              fontSize={window.innerWidth > 640 ? 12 : 10}
+              stroke="#64748b"
+            />
+            <Tooltip
+              formatter={(value, name, props) => [value, name]}
+              labelFormatter={(label) => `Equipment Type: ${label}`}
+            />
             <Legend />
             <Bar
               dataKey="count"
-              fill="#134866"
+              fill="#2678E7"
               name="Equipment Count"
               radius={[8, 8, 0, 0]}
             />

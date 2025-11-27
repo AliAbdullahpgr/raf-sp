@@ -11,7 +11,7 @@ import {
 
 export default function SignupPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#134866] to-[#1a5f7f] p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#2678E7] to-[#1e5bb8] p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
@@ -29,7 +29,7 @@ export default function SignupPage() {
             Already have an account?{" "}
             <Link
               href="/login"
-              className="font-medium text-[#134866] hover:underline"
+              className="font-medium text-[#2678E7] hover:underline"
             >
               Sign in
             </Link>

@@ -119,7 +119,7 @@ export function ProfileImageUpload({
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-[#134866] text-white">
+            <div className="w-full h-full flex items-center justify-center bg-[#2678E7] text-white">
               <User className="w-16 h-16" />
             </div>
           )}
@@ -128,7 +128,7 @@ export function ProfileImageUpload({
         {/* Camera Icon Overlay */}
         <Button
           size="icon"
-          className="absolute bottom-0 right-0 rounded-full w-10 h-10 bg-[#134866] hover:bg-[#134866]/90"
+          className="absolute bottom-0 right-0 rounded-full w-10 h-10 bg-[#2678E7] hover:bg-[#2678E7]/90"
           onClick={() => setShowUpload(true)}
           disabled={isUploading}
         >

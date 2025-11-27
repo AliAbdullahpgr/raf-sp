@@ -159,7 +159,7 @@ export function SettingsContent({ user }: SettingsContentProps) {
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Badge variant="default" className="bg-[#134866]">
+                <Badge variant="default" className="bg-[#2678E7]">
                   System Administrator
                 </Badge>
               </div>
