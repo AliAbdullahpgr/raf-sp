@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { MapPin, Users, Eye, Building2 } from "lucide-react";
 
 const departments = [
@@ -13,6 +14,7 @@ const departments = [
     description:
       "Focuses on the science of food, from production to consumption, including food safety, nutrition, and processing technologies.",
     image: "/images/departments/food-science.jpg",
+    profileImage: "/images/profiles/dr-shabbir-ahmad.jpg", // Add profile image
     hasData: true,
     focalPerson: "Dr. Shabbir Ahmad",
     designation: "Professor & Head",
@@ -26,6 +28,7 @@ const departments = [
     description:
       "Specializes in crop production, soil management, and sustainable farming practices for improved agricultural productivity.",
     image: "/images/departments/agronomy.jpg",
+    profileImage: "/images/profiles/dr-mahmood-alam.jpg", // Add profile image
     hasData: true,
     focalPerson: "Dr. Mahmood Alam",
     designation: "Professor",
@@ -39,6 +42,7 @@ const departments = [
     description:
       "Research and development in ornamental plants, landscaping, and floriculture production techniques.",
     image: "/images/departments/floriculture.jpg",
+    profileImage: null, // Add profile image when available
     hasData: true,
     focalPerson: "Dr. Asif Ali",
     designation: "Research Officer",
@@ -52,6 +56,7 @@ const departments = [
     description:
       "Comprehensive soil and water analysis services for agricultural research and farmer support.",
     image: "/images/departments/soil-water.jpg",
+    profileImage: null,
     hasData: true,
     focalPerson: "Dr. Muhammad Tariq",
     designation: "Lab Director",
@@ -65,6 +70,7 @@ const departments = [
     description:
       "Research on insect pests, beneficial insects, and integrated pest management strategies.",
     image: "/images/departments/entomology.jpg",
+    profileImage: null,
     hasData: true,
     focalPerson: "Dr. Sohail Ahmad",
     designation: "Senior Entomologist",
@@ -78,6 +84,7 @@ const departments = [
     description:
       "Dedicated research facility for mango cultivation, varieties development, and post-harvest technologies.",
     image: "/images/departments/mango.jpg",
+    profileImage: null,
     hasData: true,
     focalPerson: "Dr. Muhammad Tauseef",
     designation: "Senior Scientist (Agronomy)",
@@ -91,6 +98,7 @@ const departments = [
     description:
       "Research and development in farm machinery, mechanization technologies, and agricultural engineering.",
     image: "/images/departments/mechanization.jpg",
+    profileImage: null,
     hasData: true,
     focalPerson: "Dr. Khalid Mahmood",
     designation: "Director",
@@ -104,6 +112,7 @@ const departments = [
     description:
       "Management of university infrastructure, facilities, and estate operations.",
     image: "/images/departments/estate.jpg",
+    profileImage: null,
     hasData: true,
     focalPerson: "Engr. Ahmad Hassan",
     designation: "Estate Manager",
@@ -117,6 +126,7 @@ const departments = [
     description:
       "Research and education in fruit and vegetable production, post-harvest handling, and horticultural sciences.",
     image: "/images/departments/horticulture.jpg",
+    profileImage: null,
     hasData: false,
     focalPerson: "Dr. Rashid Ali",
     designation: "Professor",
@@ -130,6 +140,7 @@ const departments = [
     description:
       "Development of improved crop varieties through conventional and modern breeding techniques.",
     image: "/images/departments/plant-breeding.jpg",
+    profileImage: null,
     hasData: false,
     focalPerson: "Dr. Saeed Ahmad",
     designation: "Professor & Head",
@@ -143,6 +154,7 @@ const departments = [
     description:
       "Research on plant diseases, disease management, and development of resistant varieties.",
     image: "/images/departments/plant-pathology.jpg",
+    profileImage: null,
     hasData: false,
     focalPerson: "Dr. Iftikhar Ahmad",
     designation: "Professor",
@@ -156,6 +168,7 @@ const departments = [
     description:
       "Forest conservation, range management, and sustainable natural resource utilization.",
     image: "/images/departments/forestry.jpg",
+    profileImage: null,
     hasData: false,
     focalPerson: "Dr. Muhammad Akram",
     designation: "Professor",
@@ -169,6 +182,7 @@ const departments = [
     description:
       "Livestock production, animal nutrition, breeding, and veterinary sciences.",
     image: "/images/departments/animal-science.jpg",
+    profileImage: null,
     hasData: false,
     focalPerson: "Dr. Zulfiqar Ali",
     designation: "Professor & Head",
@@ -182,6 +196,7 @@ const departments = [
     description:
       "Modern biotechnological approaches for crop improvement and agricultural innovation.",
     image: "/images/departments/biotechnology.jpg",
+    profileImage: "/images/profiles/dr-farah-naz.jpg", // Add profile image for Dr. Farah Naz
     hasData: false,
     focalPerson: "Dr. Farah Naz",
     designation: "Associate Professor",
@@ -195,6 +210,7 @@ const departments = [
     description:
       "Irrigation systems, water conservation, and efficient water use in agriculture.",
     image: "/images/departments/water-management.jpg",
+    profileImage: null,
     hasData: false,
     focalPerson: "Dr. Ghulam Murtaza",
     designation: "Professor",
@@ -212,18 +228,40 @@ export function DepartmentsSection() {
     visible: {
       opacity: 1,
       transition: {
+        duration: 0.5,
+        ease: "easeOut" as const,
         staggerChildren: 0.1,
+        delayChildren: 0.3,
+      },
+    },
+  };
+
+  const headerVariants = {
+    hidden: {
+      opacity: 0,
+      y: 20,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut" as const,
       },
     },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: {
+      opacity: 0,
+      y: 30,
+    },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.4,
+        duration: 0.5,
+        ease: "easeOut" as const,
       },
     },
   };
@@ -231,9 +269,14 @@ export function DepartmentsSection() {
   return (
     <section
       id="departments"
-      className="py-20 bg-gradient-to-br from-gray-50 to-white"
+      className="py-20 bg-gradient-to-br from-gray-50 to-white relative overflow-hidden"
       ref={ref}
     >
+      {/* Static background elements */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
+        <div className="absolute top-20 left-10 w-32 h-32 bg-[#2678E7] rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 bg-[#1e5bb8] rounded-full blur-3xl"></div>
+      </div>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial="hidden"
@@ -242,7 +285,7 @@ export function DepartmentsSection() {
           className="max-w-7xl mx-auto"
         >
           {/* Section Header */}
-          <motion.div variants={itemVariants} className="text-center mb-16">
+          <motion.div variants={headerVariants} className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
               Our Departments
             </h2>
@@ -255,21 +298,41 @@ export function DepartmentsSection() {
           {/* Departments Grid */}
           <motion.div
             variants={containerVariants}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 prevent-layout-shift"
           >
-            {departments.map((department) => (
+            {departments.map((department, index) => (
               <motion.div
                 key={department.id}
                 variants={itemVariants}
-                className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100 overflow-hidden group"
+                whileHover={{
+                  y: -4,
+                  transition: { duration: 0.2, ease: "easeOut" as const },
+                }}
+                className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 border border-gray-100 overflow-hidden group smooth-animation"
               >
                 {/* Department Image */}
                 <div className="relative h-48 bg-gradient-to-br from-[#2678E7] to-[#1e5bb8] overflow-hidden">
-                  <div className="absolute inset-0 bg-black/20"></div>
-                  {/* Placeholder for department-specific imagery */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Building2 className="w-16 h-16 text-white/30" />
-                  </div>
+                  {/* Department Image with Fallback */}
+                  {department.image ? (
+                    <>
+                      <Image
+                        src={department.image}
+                        alt={department.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-300"></div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
+                      {/* Fallback icon when no image is available */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Building2 className="w-16 h-16 text-white/30 group-hover:text-white/50 transition-colors duration-300" />
+                      </div>
+                    </>
+                  )}
                   <div className="absolute top-4 right-4">
                     {department.hasData ? (
                       <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -283,7 +346,7 @@ export function DepartmentsSection() {
                     )}
                   </div>
                   <div className="absolute bottom-4 left-4 right-4">
-                    <h3 className="text-xl font-bold text-white mb-2 line-clamp-2">
+                    <h3 className="text-xl font-bold text-white mb-2 line-clamp-2 group-hover:text-yellow-100 transition-colors duration-300">
                       {department.name}
                     </h3>
                   </div>
@@ -292,26 +355,28 @@ export function DepartmentsSection() {
                 {/* Department Content */}
                 <div className="p-6">
                   <div className="flex items-start gap-2 mb-3">
-                    <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-gray-600 line-clamp-2">
+                    <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0 group-hover:text-[#2678E7] transition-colors duration-300" />
+                    <p className="text-sm text-gray-600 line-clamp-2 group-hover:text-gray-700 transition-colors duration-300">
                       {department.location}
                     </p>
                   </div>
 
-                  <p className="text-gray-700 text-sm mb-4 line-clamp-3">
+                  <p className="text-gray-700 text-sm mb-4 line-clamp-3 group-hover:text-gray-800 transition-colors duration-300">
                     {department.description}
                   </p>
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Users className="w-4 h-4" />
-                      <span>{department.focalPerson}</span>
+                      <Users className="w-4 h-4 group-hover:text-[#2678E7] transition-colors duration-300" />
+                      <span className="group-hover:text-gray-700 transition-colors duration-300">
+                        {department.focalPerson}
+                      </span>
                     </div>
 
                     {department.hasData ? (
                       <Link
                         href={`/department/${department.id}`}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#2678E7] text-white text-sm font-medium rounded-lg hover:bg-[#1e5bb8] transition-colors duration-200"
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-[#2678E7] text-white text-sm font-medium rounded-lg hover:bg-[#1e5bb8] hover:shadow-lg transition-all duration-300"
                       >
                         View Details
                         <Eye className="w-4 h-4" />

@@ -64,16 +64,54 @@ async function getDepartmentSpecificStats(
   departmentId: string
 ): Promise<DashboardStats> {
   try {
-    // Get all equipment from department-specific tables for this department
-    const foodAnalysisEquipment =
+    // Get all equipment from ALL department-specific tables for this department
+    const [
+      foodAnalysisEquipment,
+      agronomyEquipment,
+      mriAssets,
+      amriInventory,
+      floricultureAssets,
+      soilWaterProject,
+      erssStock,
+      mnsuamFacilities,
+      criAssets,
+      rariAssets,
+    ] = await Promise.all([
       // @ts-ignore - Prisma client type issue
-      await prisma.foodAnalysisLabEquipment.findMany({
-        where: { departmentId },
-      });
+      prisma.foodAnalysisLabEquipment.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.agronomyLabEquipment.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.mRIAssets.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.aMRIInventory.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.floricultureStationAssets.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.soilWaterTestingProject.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.eRSSStockRegister.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.mNSUAMEstateFacilities.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.cRIMultanAssets.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.rARIBahawalpurAssets.findMany({ where: { departmentId } }),
+    ]);
 
-    // For now, just use the food analysis equipment
-    // TODO: Add other department-specific tables
-    const allEquipment = [...foodAnalysisEquipment];
+    // Combine all equipment from all tables
+    const allEquipment = [
+      ...foodAnalysisEquipment,
+      ...agronomyEquipment,
+      ...mriAssets,
+      ...amriInventory,
+      ...floricultureAssets,
+      ...soilWaterProject,
+      ...erssStock,
+      ...mnsuamFacilities,
+      ...criAssets,
+      ...rariAssets,
+    ];
 
     const totalEquipment = allEquipment.length;
 
@@ -176,14 +214,54 @@ export async function getAllDepartmentsStats(): Promise<DashboardStats> {
   try {
     // All departments stats are public - no authentication required
 
-    // Get all equipment from department-specific tables
-    const foodAnalysisEquipment =
+    // Get all equipment from ALL department-specific tables
+    const [
+      foodAnalysisEquipment,
+      agronomyEquipment,
+      mriAssets,
+      amriInventory,
+      floricultureAssets,
+      soilWaterProject,
+      erssStock,
+      mnsuamFacilities,
+      criAssets,
+      rariAssets,
+    ] = await Promise.all([
       // @ts-ignore - Prisma client type issue
-      await prisma.foodAnalysisLabEquipment.findMany();
+      prisma.foodAnalysisLabEquipment.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.agronomyLabEquipment.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.mRIAssets.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.aMRIInventory.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.floricultureStationAssets.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.soilWaterTestingProject.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.eRSSStockRegister.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.mNSUAMEstateFacilities.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.cRIMultanAssets.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.rARIBahawalpurAssets.findMany(),
+    ]);
 
-    // For now, just use the food analysis equipment
-    // TODO: Add other department-specific tables
-    const allEquipment = [...foodAnalysisEquipment];
+    // Combine all equipment from all tables
+    const allEquipment = [
+      ...foodAnalysisEquipment,
+      ...agronomyEquipment,
+      ...mriAssets,
+      ...amriInventory,
+      ...floricultureAssets,
+      ...soilWaterProject,
+      ...erssStock,
+      ...mnsuamFacilities,
+      ...criAssets,
+      ...rariAssets,
+    ];
 
     const totalEquipment = allEquipment.length;
 

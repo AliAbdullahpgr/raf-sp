@@ -68,3 +68,23 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* Smooth animations and performance optimizations */
+  .smooth-animation {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+  }
+
+  /* Prevent layout shifts during animations */
+  .prevent-layout-shift {
+    contain: layout style paint;
+  }
+
+  /* Hardware acceleration for smooth animations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}
