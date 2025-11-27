@@ -287,14 +287,7 @@ export async function deleteDepartment(id: string): Promise<ActionResult> {
  */
 export async function getDepartments(): Promise<ActionResult> {
   try {
-    const session = await auth();
-
-    if (!session || !session.user) {
-      return {
-        success: false,
-        message: "Unauthorized. Please log in.",
-      };
-    }
+    // Department list is public - no authentication required
 
     const departments = await prisma.department.findMany({
       include: {

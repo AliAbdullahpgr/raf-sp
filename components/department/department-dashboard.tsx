@@ -1,35 +1,25 @@
 "use client";
 
-import { useDashboardStats } from "@/hooks/use-dashboard";
-import {
-  StatsOverview,
-  StatsOverviewSkeleton,
-} from "@/components/dashboard/stats-overview";
-import {
-  EquipmentStatusChart,
-  EquipmentStatusChartSkeleton,
-} from "@/components/dashboard/equipment-status-chart";
-import {
-  EquipmentTypeChart,
-  EquipmentTypeChartSkeleton,
-} from "@/components/dashboard/equipment-type-chart";
-import {
-  RecentEquipmentTable,
-  RecentEquipmentTableSkeleton,
-} from "@/components/dashboard/recent-equipment-table";
+import { useDepartmentStatsBySlug } from "@/hooks/use-dashboard";
+import { StatsOverview } from "@/components/dashboard/stats-overview";
+import { EquipmentStatusChart } from "@/components/dashboard/equipment-status-chart";
+import { EquipmentTypeChart } from "@/components/dashboard/equipment-type-chart";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { BarChart3 } from "lucide-react";
 
 interface DepartmentDashboardProps {
-  departmentId: string;
+  departmentId: string; // This is actually the slug
 }
 
 export function DepartmentDashboard({
-  departmentId,
+  departmentId: departmentSlug,
 }: DepartmentDashboardProps) {
-  // For now, we'll use mock data since we don't have department-specific stats yet
-  // In a real implementation, you would fetch department-specific stats
-  const { data: stats, isLoading, error, refetch } = useDashboardStats();
+  const {
+    data: stats,
+    isLoading,
+    error,
+    refetch,
+  } = useDepartmentStatsBySlug(departmentSlug);
 
   return (
     <div className="space-y-6">
@@ -54,9 +44,8 @@ export function DepartmentDashboard({
               <EquipmentStatusChart stats={stats} />
               <EquipmentTypeChart stats={stats} />
             </div>
-            <RecentEquipmentTable equipment={stats.recentEquipment} />
           </>
-        ) : (
+        ) : !isLoading ? (
           <div className="text-center py-12 bg-white rounded-lg border">
             <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <p className="text-gray-500 mb-2">No statistics available</p>
@@ -64,7 +53,7 @@ export function DepartmentDashboard({
               Statistics will be displayed once equipment data is available
             </p>
           </div>
-        )}
+        ) : null}
       </LoadingState>
     </div>
   );

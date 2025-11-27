@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Package, Search, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Package, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -253,8 +252,8 @@ export function DepartmentEquipmentTable({
         </h2>
       </div>
 
-      {/* Search and Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+      {/* Search */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
@@ -264,10 +263,6 @@ export function DepartmentEquipmentTable({
             className="pl-10"
           />
         </div>
-        <Button className="w-full sm:w-auto">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Equipment
-        </Button>
       </div>
 
       {/* Equipment Table */}

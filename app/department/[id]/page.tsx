@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Image from "next/image";
 import {
   Building2,
   MapPin,
@@ -19,6 +20,64 @@ import { LoadingState } from "@/components/ui/loading-spinner";
 import { DepartmentDashboard } from "@/components/department/department-dashboard";
 import { DepartmentEquipmentTable } from "@/components/department/department-equipment-table";
 
+// Profile Picture Component
+interface ProfilePictureProps {
+  src?: string | null;
+  alt: string;
+  size?: "sm" | "md" | "lg";
+}
+
+function ProfilePicture({ src, alt, size = "md" }: ProfilePictureProps) {
+  const sizeClasses = {
+    sm: "w-12 h-12",
+    md: "w-16 h-16",
+    lg: "w-24 h-24",
+  };
+
+  const textSizeClasses = {
+    sm: "text-sm",
+    md: "text-lg",
+    lg: "text-2xl",
+  };
+
+  // Generate initials from the name
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((word) => word.charAt(0))
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  if (src) {
+    return (
+      <div
+        className={`${sizeClasses[size]} rounded-full overflow-hidden border-2 border-gray-200 shadow-sm`}
+      >
+        <Image
+          src={src}
+          alt={alt}
+          width={size === "lg" ? 96 : size === "md" ? 64 : 48}
+          height={size === "lg" ? 96 : size === "md" ? 64 : 48}
+          className="w-full h-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  // Default avatar with initials when no image is provided
+  return (
+    <div
+      className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-[#2678E7] to-[#1e5bb8] flex items-center justify-center border-2 border-gray-200 shadow-sm`}
+    >
+      <span className={`${textSizeClasses[size]} font-semibold text-white`}>
+        {getInitials(alt)}
+      </span>
+    </div>
+  );
+}
+
 // Department data (in a real app, this would come from an API)
 const departmentData = {
   "food-science-technology": {
@@ -31,6 +90,8 @@ const departmentData = {
     designation: "Professor & Head",
     phone: "+92-61-9210071",
     email: "shabbir.ahmad@mnsuam.edu.pk",
+    profileImage:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face&auto=format&q=80", // Sample profile image
     hasData: true,
     tableType: "FoodAnalysisLabEquipment",
   },
@@ -44,6 +105,8 @@ const departmentData = {
     designation: "Professor",
     phone: "+92-61-9210072",
     email: "mahmood.alam@mnsuam.edu.pk",
+    profileImage:
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face&auto=format&q=80",
     hasData: true,
     tableType: "AgronomyLabEquipment",
   },
@@ -57,6 +120,7 @@ const departmentData = {
     designation: "Senior Scientist (Agronomy)",
     phone: "+923340072357",
     email: "tauseef@mri.gov.pk",
+    profileImage: null,
     hasData: true,
     tableType: "MRIAssets",
   },
@@ -70,6 +134,7 @@ const departmentData = {
     designation: "Director",
     phone: "+92-61-9210076",
     email: "khalid.mahmood@amri.gov.pk",
+    profileImage: null,
     hasData: true,
     tableType: "AMRIInventory",
   },
@@ -83,6 +148,7 @@ const departmentData = {
     designation: "Research Officer",
     phone: "+92-61-9210073",
     email: "asif.ali@mnsuam.edu.pk",
+    profileImage: null,
     hasData: true,
     tableType: "FloricultureStationAssets",
   },
@@ -96,6 +162,7 @@ const departmentData = {
     designation: "Lab Director",
     phone: "+92-61-9210074",
     email: "tariq@mnsuam.edu.pk",
+    profileImage: null,
     hasData: true,
     tableType: "SoilWaterTestingProject",
   },
@@ -109,6 +176,7 @@ const departmentData = {
     designation: "Senior Entomologist",
     phone: "+92-61-9210075",
     email: "sohail.ahmad@mnsuam.edu.pk",
+    profileImage: null,
     hasData: true,
     tableType: "ERSSStockRegister",
   },
@@ -122,6 +190,7 @@ const departmentData = {
     designation: "Estate Manager",
     phone: "+92-61-9210077",
     email: "ahmad.hassan@mnsuam.edu.pk",
+    profileImage: null,
     hasData: true,
     tableType: "MNSUAMEstateFacilities",
   },
@@ -135,6 +204,7 @@ const departmentData = {
     designation: "Professor",
     phone: "+92-61-9210078",
     email: "rashid.ali@mnsuam.edu.pk",
+    profileImage: null,
     hasData: false,
     tableType: "",
   },
@@ -148,6 +218,7 @@ const departmentData = {
     designation: "Professor & Head",
     phone: "+92-61-9210079",
     email: "saeed.ahmad@mnsuam.edu.pk",
+    profileImage: null,
     hasData: false,
     tableType: "",
   },
@@ -161,6 +232,8 @@ const departmentData = {
     designation: "Associate Professor",
     phone: "+92-61-9210083",
     email: "farah.naz@mnsuam.edu.pk",
+    profileImage:
+      "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face&auto=format&q=80",
     hasData: false,
     tableType: "",
   },
@@ -275,21 +348,33 @@ export default function DepartmentPage() {
               </p>
 
               <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-gray-900 mb-2">
+                <h3 className="font-semibold text-gray-900 mb-4 text-center">
                   Department Contact
                 </h3>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center justify-center gap-2">
-                    <User className="w-4 h-4" />
-                    <span>{department.focalPerson}</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    <span>{department.phone}</span>
-                  </div>
-                  <div className="flex items-center justify-center gap-2">
-                    <Mail className="w-4 h-4" />
-                    <span>{department.email}</span>
+                <div className="flex flex-col items-center space-y-3">
+                  <ProfilePicture
+                    src={department.profileImage}
+                    alt={department.focalPerson}
+                    size="md"
+                  />
+                  <div className="text-center space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center justify-center gap-2">
+                      <User className="w-4 h-4" />
+                      <span className="font-medium">
+                        {department.focalPerson}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {department.designation}
+                    </p>
+                    <div className="flex items-center justify-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      <span>{department.phone}</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      <span>{department.email}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -375,21 +460,21 @@ export default function DepartmentPage() {
                   <label className="text-sm font-medium text-gray-500 uppercase tracking-wide">
                     Focal Person
                   </label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <p className="text-gray-900 font-medium">
-                      {department.focalPerson}
-                    </p>
+                  <div className="flex items-center gap-3 mt-1">
+                    <ProfilePicture
+                      src={department.profileImage}
+                      alt={department.focalPerson}
+                      size="sm"
+                    />
+                    <div>
+                      <p className="text-gray-900 font-medium">
+                        {department.focalPerson}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {department.designation}
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-500 uppercase tracking-wide">
-                    Designation
-                  </label>
-                  <p className="text-gray-900 font-medium mt-1">
-                    {department.designation}
-                  </p>
                 </div>
               </div>
 

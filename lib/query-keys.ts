@@ -5,10 +5,11 @@
 
 export const queryKeys = {
   // Dashboard stats
-  dashboardStats: () => ["dashboard-stats"] as const,
+  dashboardStats: () => ["dashboard-stats", "v2"] as const,
   dashboardStatsByDepartment: (departmentId: string) =>
-    ["dashboard-stats", departmentId] as const,
-  allDepartmentsStats: () => ["dashboard-stats", "all-departments"] as const,
+    ["dashboard-stats", departmentId, "v2"] as const,
+  allDepartmentsStats: () =>
+    ["dashboard-stats", "all-departments", "v2"] as const,
 
   // Equipment queries
   equipment: {

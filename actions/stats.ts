@@ -16,11 +16,14 @@ export async function getDashboardStats(
   try {
     const session = await auth();
 
-    if (!session || !session.user) {
-      throw new Error("Unauthorized");
-    }
+    // If no session, treat as public view (show all data)
+    let role = "PUBLIC";
+    let userDepartmentId = null;
 
-    const { role, departmentId: userDepartmentId } = session.user;
+    if (session && session.user) {
+      role = session.user.role;
+      userDepartmentId = session.user.departmentId;
+    }
 
     // Determine which department to filter by
     let filterDepartmentId: string | undefined;
@@ -34,104 +37,87 @@ export async function getDashboardStats(
         throw new Error("Department head must be assigned to a department");
       }
       filterDepartmentId = userDepartmentId;
+    } else if (role === "PUBLIC") {
+      // Public users can view specific department if provided
+      filterDepartmentId = departmentId;
     } else {
       throw new Error("Invalid role");
     }
 
-    // Build the where clause for filtering
-    const whereClause = filterDepartmentId
-      ? { departmentId: filterDepartmentId }
-      : {};
+    // If we have a specific department ID, try to get stats from department-specific tables
+    if (filterDepartmentId) {
+      return await getDepartmentSpecificStats(filterDepartmentId);
+    }
 
-    // Get total equipment count
-    const totalEquipment = await prisma.equipment.count({
-      where: whereClause,
-    });
+    // If no specific department, get stats from all department-specific tables
+    return await getAllDepartmentsStats();
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    throw error;
+  }
+}
 
-    // Get equipment counts by status
-    const equipmentByStatus = await prisma.equipment.groupBy({
-      by: ["status"],
-      where: whereClause,
-      _count: {
-        status: true,
-      },
-    });
+/**
+ * Get department-specific statistics from department-specific equipment tables
+ */
+async function getDepartmentSpecificStats(
+  departmentId: string
+): Promise<DashboardStats> {
+  try {
+    // Get all equipment from department-specific tables for this department
+    const foodAnalysisEquipment =
+      // @ts-ignore - Prisma client type issue
+      await prisma.foodAnalysisLabEquipment.findMany({
+        where: { departmentId },
+      });
 
-    // Transform status counts into individual variables
-    const availableCount =
-      equipmentByStatus.find(
-        (item) => item.status === EquipmentStatus.AVAILABLE
-      )?._count.status || 0;
-    const inUseCount =
-      equipmentByStatus.find((item) => item.status === EquipmentStatus.IN_USE)
-        ?._count.status || 0;
-    const needsRepairCount =
-      equipmentByStatus.find(
-        (item) => item.status === EquipmentStatus.NEEDS_REPAIR
-      )?._count.status || 0;
-    const discardedCount =
-      equipmentByStatus.find(
-        (item) => item.status === EquipmentStatus.DISCARDED
-      )?._count.status || 0;
+    // For now, just use the food analysis equipment
+    // TODO: Add other department-specific tables
+    const allEquipment = [...foodAnalysisEquipment];
 
-    // Get equipment distribution by type
-    const equipmentByType = await prisma.equipment.groupBy({
-      by: ["type"],
-      where: whereClause,
-      _count: {
-        type: true,
-      },
-      orderBy: {
-        _count: {
-          type: "desc",
-        },
-      },
-    });
+    const totalEquipment = allEquipment.length;
 
-    // Transform type counts
-    const equipmentByTypeFormatted = equipmentByType.map((item) => ({
-      type: item.type,
-      count: item._count.type,
-    }));
+    // Count by status (normalize status values)
+    const statusCounts = allEquipment.reduce((acc, item) => {
+      const status = normalizeStatus(item.status);
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
-    // Get recent equipment additions (last 10)
-    const recentEquipment = await prisma.equipment.findMany({
-      where: whereClause,
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 10,
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        status: true,
-        purchaseDate: true,
-        department: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
+    const availableCount = statusCounts.AVAILABLE || 0;
+    const inUseCount = statusCounts.IN_USE || 0;
+    const needsRepairCount = statusCounts.NEEDS_REPAIR || 0;
+    const discardedCount = statusCounts.DISCARDED || 0;
 
-    // Calculate total maintenance cost
-    const maintenanceCostResult = await prisma.maintenanceLog.aggregate({
-      where: filterDepartmentId
-        ? {
-            equipment: {
-              departmentId: filterDepartmentId,
-            },
-          }
-        : {},
-      _sum: {
-        cost: true,
-      },
-    });
+    // Count by type
+    const typeCounts = allEquipment.reduce((acc, item) => {
+      const type = item.type || "Unknown";
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
-    const totalMaintenanceCost = maintenanceCostResult._sum.cost
-      ? Number(maintenanceCostResult._sum.cost)
-      : 0;
+    const equipmentByType = Object.entries(typeCounts)
+      .map(([type, count]) => ({ type, count: count as number }))
+      .sort((a, b) => b.count - a.count);
+
+    // Get recent equipment (last 10)
+    const recentEquipment = allEquipment
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      .slice(0, 10)
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        type: item.type,
+        status: normalizeStatus(item.status) as EquipmentStatus,
+        purchaseDate: item.createdAt, // Use createdAt as purchaseDate for now
+        department: { name: "Department" }, // We'll need to fetch this separately if needed
+      }));
+
+    // For now, set maintenance cost to 0 since department-specific tables don't have maintenance logs
+    const totalMaintenanceCost = 0;
 
     return {
       totalEquipment,
@@ -139,14 +125,47 @@ export async function getDashboardStats(
       inUseCount,
       needsRepairCount,
       discardedCount,
-      equipmentByType: equipmentByTypeFormatted,
+      equipmentByType,
       recentEquipment,
       totalMaintenanceCost,
     };
   } catch (error) {
-    console.error("Error fetching dashboard stats:", error);
+    console.error("Error fetching department-specific stats:", error);
     throw error;
   }
+}
+
+/**
+ * Normalize status values from different tables to standard enum values
+ */
+function normalizeStatus(status: string): EquipmentStatus {
+  const statusUpper = status.toUpperCase();
+
+  if (
+    statusUpper.includes("FUNCTIONAL") ||
+    statusUpper.includes("WORKING") ||
+    statusUpper.includes("AVAILABLE")
+  ) {
+    return EquipmentStatus.AVAILABLE;
+  }
+  if (
+    statusUpper.includes("NON_FUNCTIONAL") ||
+    statusUpper.includes("NOT_WORKING") ||
+    statusUpper.includes("REPAIR")
+  ) {
+    return EquipmentStatus.NEEDS_REPAIR;
+  }
+  if (
+    statusUpper.includes("DISCARDED") ||
+    statusUpper.includes("OUT_OF_ORDER")
+  ) {
+    return EquipmentStatus.DISCARDED;
+  }
+  if (statusUpper.includes("IN_USE") || statusUpper.includes("OCCUPIED")) {
+    return EquipmentStatus.IN_USE;
+  }
+
+  return EquipmentStatus.AVAILABLE; // Default to available
 }
 
 /**
@@ -155,98 +174,60 @@ export async function getDashboardStats(
  */
 export async function getAllDepartmentsStats(): Promise<DashboardStats> {
   try {
-    const session = await auth();
+    // All departments stats are public - no authentication required
 
-    if (!session || !session.user) {
-      throw new Error("Unauthorized");
-    }
+    // Get all equipment from department-specific tables
+    const foodAnalysisEquipment =
+      // @ts-ignore - Prisma client type issue
+      await prisma.foodAnalysisLabEquipment.findMany();
 
-    // No department filtering - show stats across all departments
-    const whereClause = {};
+    // For now, just use the food analysis equipment
+    // TODO: Add other department-specific tables
+    const allEquipment = [...foodAnalysisEquipment];
 
-    // Get total equipment count
-    const totalEquipment = await prisma.equipment.count({
-      where: whereClause,
-    });
+    const totalEquipment = allEquipment.length;
 
-    // Get equipment counts by status
-    const equipmentByStatus = await prisma.equipment.groupBy({
-      by: ["status"],
-      where: whereClause,
-      _count: {
-        status: true,
-      },
-    });
+    // Count by status (normalize status values)
+    const statusCounts = allEquipment.reduce((acc, item) => {
+      const status = normalizeStatus(item.status);
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {} as Record<EquipmentStatus, number>);
 
-    // Transform status counts into individual variables
-    const availableCount =
-      equipmentByStatus.find(
-        (item) => item.status === EquipmentStatus.AVAILABLE
-      )?._count.status || 0;
-    const inUseCount =
-      equipmentByStatus.find((item) => item.status === EquipmentStatus.IN_USE)
-        ?._count.status || 0;
-    const needsRepairCount =
-      equipmentByStatus.find(
-        (item) => item.status === EquipmentStatus.NEEDS_REPAIR
-      )?._count.status || 0;
-    const discardedCount =
-      equipmentByStatus.find(
-        (item) => item.status === EquipmentStatus.DISCARDED
-      )?._count.status || 0;
+    const availableCount = statusCounts[EquipmentStatus.AVAILABLE] || 0;
+    const inUseCount = statusCounts[EquipmentStatus.IN_USE] || 0;
+    const needsRepairCount = statusCounts[EquipmentStatus.NEEDS_REPAIR] || 0;
+    const discardedCount = statusCounts[EquipmentStatus.DISCARDED] || 0;
 
-    // Get equipment distribution by type
-    const equipmentByType = await prisma.equipment.groupBy({
-      by: ["type"],
-      where: whereClause,
-      _count: {
-        type: true,
-      },
-      orderBy: {
-        _count: {
-          type: "desc",
-        },
-      },
-    });
+    // Count by type
+    const typeCounts = allEquipment.reduce((acc, item) => {
+      const type = item.type || "Unknown";
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
 
-    // Transform type counts
-    const equipmentByTypeFormatted = equipmentByType.map((item) => ({
-      type: item.type,
-      count: item._count.type,
-    }));
+    const equipmentByType = Object.entries(typeCounts)
+      .map(([type, count]) => ({ type, count: count as number }))
+      .sort((a, b) => b.count - a.count);
 
-    // Get recent equipment additions (last 10) across all departments
-    const recentEquipment = await prisma.equipment.findMany({
-      where: whereClause,
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 10,
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        status: true,
-        purchaseDate: true,
-        department: {
-          select: {
-            name: true,
-          },
-        },
-      },
-    });
+    // Get recent equipment (last 10)
+    const recentEquipment = allEquipment
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      .slice(0, 10)
+      .map((item) => ({
+        id: item.id,
+        name: item.name,
+        type: item.type,
+        status: normalizeStatus(item.status),
+        purchaseDate: item.createdAt, // Use createdAt as purchaseDate for now
+        department: { name: "Department" }, // We'll need to fetch this separately if needed
+      }));
 
-    // Calculate total maintenance cost across all departments
-    const maintenanceCostResult = await prisma.maintenanceLog.aggregate({
-      where: {},
-      _sum: {
-        cost: true,
-      },
-    });
-
-    const totalMaintenanceCost = maintenanceCostResult._sum.cost
-      ? Number(maintenanceCostResult._sum.cost)
-      : 0;
+    // For now, set maintenance cost to 0 since department-specific tables don't have maintenance logs
+    const totalMaintenanceCost = 0;
 
     return {
       totalEquipment,
@@ -254,7 +235,7 @@ export async function getAllDepartmentsStats(): Promise<DashboardStats> {
       inUseCount,
       needsRepairCount,
       discardedCount,
-      equipmentByType: equipmentByTypeFormatted,
+      equipmentByType,
       recentEquipment,
       totalMaintenanceCost,
     };

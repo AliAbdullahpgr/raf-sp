@@ -1,6 +1,5 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { ActionResult } from "@/types";
 
@@ -12,27 +11,27 @@ export async function getDepartmentEquipment(
   tableType: string
 ): Promise<ActionResult> {
   try {
-    const session = await auth();
-
-    if (!session || !session.user) {
-      return {
-        success: false,
-        message: "Unauthorized. Please log in.",
-      };
-    }
+    // Department equipment data is public - no authentication required
 
     let equipment = [];
 
     // Fetch from the appropriate table based on tableType
     switch (tableType) {
       case "FoodAnalysisLabEquipment":
+        console.log(
+          "🔍 Fetching from FoodAnalysisLabEquipment table with departmentId:",
+          departmentId
+        );
+        // @ts-ignore - Prisma client type issue
         equipment = await prisma.foodAnalysisLabEquipment.findMany({
           where: { departmentId },
           orderBy: { createdAt: "desc" },
         });
+        console.log("🔍 Found equipment:", equipment.length, "items");
         break;
 
       case "AgronomyLabEquipment":
+        // @ts-ignore - Prisma client type issue
         equipment = await prisma.agronomyLabEquipment.findMany({
           where: { departmentId },
           orderBy: { createdAt: "desc" },
@@ -40,6 +39,7 @@ export async function getDepartmentEquipment(
         break;
 
       case "MRIAssets":
+        // @ts-ignore - Prisma client type issue
         equipment = await prisma.mRIAssets.findMany({
           where: { departmentId },
           orderBy: { createdAt: "desc" },
@@ -47,6 +47,7 @@ export async function getDepartmentEquipment(
         break;
 
       case "AMRIInventory":
+        // @ts-ignore - Prisma client type issue
         equipment = await prisma.aMRIInventory.findMany({
           where: { departmentId },
           orderBy: { createdAt: "desc" },
@@ -54,6 +55,7 @@ export async function getDepartmentEquipment(
         break;
 
       case "FloricultureStationAssets":
+        // @ts-ignore - Prisma client type issue
         equipment = await prisma.floricultureStationAssets.findMany({
           where: { departmentId },
           orderBy: { createdAt: "desc" },
@@ -61,6 +63,7 @@ export async function getDepartmentEquipment(
         break;
 
       case "SoilWaterTestingProject":
+        // @ts-ignore - Prisma client type issue
         equipment = await prisma.soilWaterTestingProject.findMany({
           where: { departmentId },
           orderBy: { createdAt: "desc" },
@@ -68,6 +71,7 @@ export async function getDepartmentEquipment(
         break;
 
       case "ERSSStockRegister":
+        // @ts-ignore - Prisma client type issue
         equipment = await prisma.eRSSStockRegister.findMany({
           where: { departmentId },
           orderBy: { createdAt: "desc" },
@@ -75,6 +79,7 @@ export async function getDepartmentEquipment(
         break;
 
       case "MNSUAMEstateFacilities":
+        // @ts-ignore - Prisma client type issue
         equipment = await prisma.mNSUAMEstateFacilities.findMany({
           where: { departmentId },
           orderBy: { createdAt: "desc" },
@@ -82,6 +87,7 @@ export async function getDepartmentEquipment(
         break;
 
       case "CRIMultanAssets":
+        // @ts-ignore - Prisma client type issue
         equipment = await prisma.cRIMultanAssets.findMany({
           where: { departmentId },
           orderBy: { createdAt: "desc" },
@@ -89,6 +95,7 @@ export async function getDepartmentEquipment(
         break;
 
       case "RARIBahawalpurAssets":
+        // @ts-ignore - Prisma client type issue
         equipment = await prisma.rARIBahawalpurAssets.findMany({
           where: { departmentId },
           orderBy: { createdAt: "desc" },
@@ -110,7 +117,9 @@ export async function getDepartmentEquipment(
     console.error("Get department equipment error:", error);
     return {
       success: false,
-      message: "An error occurred while fetching equipment",
+      message: `An error occurred while fetching equipment: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
     };
   }
 }
@@ -120,14 +129,7 @@ export async function getDepartmentEquipment(
  */
 export async function getDepartmentBySlug(slug: string): Promise<ActionResult> {
   try {
-    const session = await auth();
-
-    if (!session || !session.user) {
-      return {
-        success: false,
-        message: "Unauthorized. Please log in.",
-      };
-    }
+    // Department data is public - no authentication required
 
     // Map slug to department name
     const departmentNameMap: Record<string, string> = {
@@ -150,9 +152,11 @@ export async function getDepartmentBySlug(slug: string): Promise<ActionResult> {
       };
     }
 
+    console.log("🔍 Looking for department with name:", departmentName);
     const department = await prisma.department.findUnique({
       where: { name: departmentName },
     });
+    console.log("🔍 Department found:", department);
 
     if (!department) {
       return {

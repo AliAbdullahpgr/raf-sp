@@ -387,11 +387,14 @@ describe("Role-Based Access Control Integration Tests", () => {
       expect(deleteResult.message).toBe("Unauthorized. Please log in.");
     });
 
-    it("should prevent unauthenticated users from accessing dashboard stats", async () => {
+    it("should allow unauthenticated users to access dashboard stats (public access)", async () => {
       const { auth } = await import("@/auth");
       vi.mocked(auth).mockResolvedValue(null);
 
-      await expect(getDashboardStats()).rejects.toThrow("Unauthorized");
+      // Dashboard stats are now public for department pages
+      const result = await getDashboardStats();
+      expect(result).toBeDefined();
+      expect(result.totalEquipment).toBeGreaterThanOrEqual(0);
     });
   });
 
