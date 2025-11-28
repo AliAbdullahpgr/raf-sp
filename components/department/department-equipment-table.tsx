@@ -118,6 +118,24 @@ const getTableColumns = (tableType: string) => {
         { key: "conditionStatus", label: "Condition" },
         { key: "useApplication", label: "Application" },
       ];
+    case "PesticideQCLabData":
+      return [
+        { key: "name", label: "Item Name/Post" },
+        { key: "type", label: "Section Category" },
+        { key: "status", label: "Status" },
+        { key: "bpsScale", label: "BPS Scale" },
+        { key: "quantityOrSanctioned", label: "Quantity/Sanctioned" },
+      ];
+    case "AgriEngineeringMultanRegionData":
+      return [
+        { key: "name", label: "Item/Designation" },
+        { key: "type", label: "Category" },
+        { key: "status", label: "Status" },
+        { key: "divisionOrCity", label: "Division/City" },
+        { key: "officeName", label: "Office Name" },
+        { key: "quantityOrArea", label: "Quantity/Area" },
+        { key: "contactDetails", label: "Contact Details" },
+      ];
     default:
       return [
         { key: "name", label: "Name" },

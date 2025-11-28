@@ -76,6 +76,8 @@ async function getDepartmentSpecificStats(
       mnsuamFacilities,
       criAssets,
       rariAssets,
+      pesticideQCLab,
+      agriEngineeringMultan,
     ] = await Promise.all([
       // @ts-ignore - Prisma client type issue
       prisma.foodAnalysisLabEquipment.findMany({ where: { departmentId } }),
@@ -97,6 +99,12 @@ async function getDepartmentSpecificStats(
       prisma.cRIMultanAssets.findMany({ where: { departmentId } }),
       // @ts-ignore - Prisma client type issue
       prisma.rARIBahawalpurAssets.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.pesticideQCLabData.findMany({ where: { departmentId } }),
+      // @ts-ignore - Prisma client type issue
+      prisma.agriEngineeringMultanRegionData.findMany({
+        where: { departmentId },
+      }),
     ]);
 
     // Combine all equipment from all tables
@@ -111,6 +119,8 @@ async function getDepartmentSpecificStats(
       ...mnsuamFacilities,
       ...criAssets,
       ...rariAssets,
+      ...pesticideQCLab,
+      ...agriEngineeringMultan,
     ];
 
     const totalEquipment = allEquipment.length;
@@ -226,6 +236,8 @@ export async function getAllDepartmentsStats(): Promise<DashboardStats> {
       mnsuamFacilities,
       criAssets,
       rariAssets,
+      pesticideQCLab,
+      agriEngineeringMultan,
     ] = await Promise.all([
       // @ts-ignore - Prisma client type issue
       prisma.foodAnalysisLabEquipment.findMany(),
@@ -247,6 +259,10 @@ export async function getAllDepartmentsStats(): Promise<DashboardStats> {
       prisma.cRIMultanAssets.findMany(),
       // @ts-ignore - Prisma client type issue
       prisma.rARIBahawalpurAssets.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.pesticideQCLabData.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.agriEngineeringMultanRegionData.findMany(),
     ]);
 
     // Combine all equipment from all tables
@@ -261,6 +277,8 @@ export async function getAllDepartmentsStats(): Promise<DashboardStats> {
       ...mnsuamFacilities,
       ...criAssets,
       ...rariAssets,
+      ...pesticideQCLab,
+      ...agriEngineeringMultan,
     ];
 
     const totalEquipment = allEquipment.length;

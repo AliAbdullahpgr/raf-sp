@@ -13,9 +13,9 @@ model User {
   password     String
   role         Role        @default(DEPT_HEAD)
   departmentId String?
-  image        String?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
+  image        String?
   department   Department? @relation(fields: [departmentId], references: [id])
 
   @@index([departmentId])
@@ -23,31 +23,31 @@ model User {
 }
 
 model Department {
-  id                          String                      @id @default(cuid())
-  name                        String                      @unique
-  location                    String
-  logo                        String?
-  focalPerson                 String?
-  designation                 String?
-  phone                       String?
-  email                       String?
-  description                 String?
-  createdAt                   DateTime                    @default(now())
-  updatedAt                   DateTime                    @updatedAt
-  equipment                   Equipment[]
-  users                       User[]
-  
-  // Department-specific equipment relations
-  amriInventory               AMRIInventory[]
-  foodAnalysisLabEquipment    FoodAnalysisLabEquipment[]
-  mriAssets                   MRIAssets[]
-  agronomyLabEquipment        AgronomyLabEquipment[]
-  floricultureStationAssets   FloricultureStationAssets[]
-  rariBahawalpurAssets        RARIBahawalpurAssets[]
-  mnsuamEstateFacilities      MNSUAMEstateFacilities[]
-  criMultanAssets             CRIMultanAssets[]
-  soilWaterTestingProject     SoilWaterTestingProject[]
-  erssStockRegister           ERSSStockRegister[]
+  id                              String                            @id @default(cuid())
+  name                            String                            @unique
+  location                        String
+  logo                            String?
+  createdAt                       DateTime                          @default(now())
+  updatedAt                       DateTime                          @updatedAt
+  description                     String?
+  designation                     String?
+  email                           String?
+  focalPerson                     String?
+  phone                           String?
+  amriInventory                   AMRIInventory[]
+  agriEngineeringMultanRegionData AgriEngineeringMultanRegionData[]
+  agronomyLabEquipment            AgronomyLabEquipment[]
+  criMultanAssets                 CRIMultanAssets[]
+  erssStockRegister               ERSSStockRegister[]
+  equipment                       Equipment[]
+  floricultureStationAssets       FloricultureStationAssets[]
+  foodAnalysisLabEquipment        FoodAnalysisLabEquipment[]
+  mnsuamEstateFacilities          MNSUAMEstateFacilities[]
+  mriAssets                       MRIAssets[]
+  pesticideQCLabData              PesticideQCLabData[]
+  rariBahawalpurAssets            RARIBahawalpurAssets[]
+  soilWaterTestingProject         SoilWaterTestingProject[]
+  users                           User[]
 
   @@index([name])
 }
@@ -83,6 +83,244 @@ model MaintenanceLog {
   @@index([date])
 }
 
+model AMRIInventory {
+  id               String          @id @default(cuid())
+  name             String
+  type             String
+  imageUrl         String?
+  departmentId     String
+  assetCategory    String?
+  itemDescription  String?
+  quantityOrArea   String?
+  functionalStatus String?
+  remarks          String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  status           EquipmentStatus @default(AVAILABLE)
+  department       Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model FoodAnalysisLabEquipment {
+  id             String          @id @default(cuid())
+  name           String
+  type           String
+  imageUrl       String?
+  departmentId   String
+  labSectionName String?
+  roomNumber     String?
+  quantity       Int             @default(1)
+  focalPerson    String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  status         EquipmentStatus @default(AVAILABLE)
+  department     Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model MRIAssets {
+  id                    String          @id @default(cuid())
+  name                  String
+  type                  String
+  imageUrl              String?
+  departmentId          String
+  category              String?
+  itemNameOrDesignation String?
+  bpsScale              Int?
+  totalQuantityOrPosts  Int?
+  filledOrFunctional    Int?
+  vacantOrNonFunctional Int?
+  remarksOrLocation     String?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  status                EquipmentStatus @default(AVAILABLE)
+  department            Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model AgronomyLabEquipment {
+  id           String          @id @default(cuid())
+  name         String
+  type         String
+  imageUrl     String?
+  departmentId String
+  quantity     Int?
+  focalPerson1 String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  status       EquipmentStatus @default(AVAILABLE)
+  department   Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model FloricultureStationAssets {
+  id             String          @id @default(cuid())
+  name           String
+  type           String
+  imageUrl       String?
+  departmentId   String
+  category       String?
+  itemNameOrPost String?
+  bpsScale       String?
+  sanctionedQty  Int?
+  inPositionQty  Int?
+  detailsOrArea  String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  status         EquipmentStatus @default(AVAILABLE)
+  department     Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model RARIBahawalpurAssets {
+  id              String          @id @default(cuid())
+  name            String
+  type            String
+  imageUrl        String?
+  departmentId    String
+  category        String?
+  makeModelYear   String?
+  quantity        Int?
+  conditionStatus String?
+  useApplication  String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  status          EquipmentStatus @default(AVAILABLE)
+  department      Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model MNSUAMEstateFacilities {
+  id              String          @id @default(cuid())
+  name            String
+  type            String
+  imageUrl        String?
+  departmentId    String
+  blockName       String?
+  facilityType    String?
+  capacityPersons Int?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  status          EquipmentStatus @default(AVAILABLE)
+  department      Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model CRIMultanAssets {
+  id                 String          @id @default(cuid())
+  name               String
+  type               String
+  imageUrl           String?
+  departmentId       String
+  assetType          String?
+  specificationModel String?
+  labSectionLocation String?
+  quantity           Int?
+  purposeFunction    String?
+  operationalStatus  String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  status             EquipmentStatus @default(AVAILABLE)
+  department         Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model SoilWaterTestingProject {
+  id                           String          @id @default(cuid())
+  name                         String
+  type                         String
+  imageUrl                     String?
+  departmentId                 String
+  category                     String?
+  bps                          Int?
+  quantityRequired             Int?
+  budgetAllocationTotalMillion Decimal?        @db.Decimal(10, 3)
+  justificationOrYear          String?
+  createdAt                    DateTime        @default(now())
+  updatedAt                    DateTime        @updatedAt
+  status                       EquipmentStatus @default(AVAILABLE)
+  department                   Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model ERSSStockRegister {
+  id                   String          @id @default(cuid())
+  name                 String
+  type                 String
+  imageUrl             String?
+  departmentId         String
+  registerPageNo       Int?
+  quantityStr          String?
+  dateReceived         DateTime?
+  lastVerificationDate String?
+  currentStatusRemarks String?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  status               EquipmentStatus @default(AVAILABLE)
+  department           Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model PesticideQCLabData {
+  id                   String          @id @default(cuid())
+  name                 String
+  type                 String
+  status               EquipmentStatus @default(AVAILABLE)
+  imageUrl             String?
+  departmentId         String
+  sectionCategory      String?
+  bpsScale             Int?
+  quantityOrSanctioned Int?
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  department           Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+  @@map("PesticideQCLabData")
+}
+
+model AgriEngineeringMultanRegionData {
+  id             String          @id @default(cuid())
+  name           String
+  type           String
+  status         EquipmentStatus @default(AVAILABLE)
+  imageUrl       String?
+  departmentId   String
+  category       String?
+  divisionOrCity String?
+  officeName     String?
+  quantityOrArea String?
+  contactDetails String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  department     Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+  @@map("Agri_Engineering_Multan_Region_Data")
+}
+
 enum Role {
   ADMIN
   DEPT_HEAD
@@ -93,214 +331,4 @@ enum EquipmentStatus {
   IN_USE
   NEEDS_REPAIR
   DISCARDED
-}
-
-// Department-specific equipment tables
-
-// Agriculture Mechanization Research Institute (AMRI)
-model AMRIInventory {
-  id               String          @id @default(cuid())
-  name             String          // Required field
-  type             String          // Required field  
-  status           EquipmentStatus @default(AVAILABLE) // Required field
-  imageUrl         String?         // Required field (nullable)
-  departmentId     String          // Required field
-  assetCategory    String?   // e.g., 'Resource', 'Machinery'
-  itemDescription  String?
-  quantityOrArea   String?   // Stores '8 acres' or '1 No'
-  functionalStatus String?   // e.g., 'Functional', 'Not Functional'
-  remarks          String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  department       Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-
-  @@index([departmentId])
-  @@index([status])
-}
-
-// Food Science and Technology Lab Equipment
-model FoodAnalysisLabEquipment {
-  id              String          @id @default(cuid())
-  name            String          // Required field (equipment_name)
-  type            String          // Required field
-  status          EquipmentStatus @default(AVAILABLE) // Required field
-  imageUrl        String?         // Required field (nullable)
-  departmentId    String          // Required field
-  labSectionName  String?   // e.g., 'Value Addition', 'Nutrient Analytical'
-  roomNumber      String?
-  quantity        Int       @default(1)
-  focalPerson     String?   // Dr. Shabbir Ahmad
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  department      Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-
-  @@index([departmentId])
-  @@index([status])
-}
-
-// Mango Research Institute (MRI) Assets
-model MRIAssets {
-  id                        String          @id @default(cuid())
-  name                      String          // Required field (item_name_or_designation)
-  type                      String          // Required field (category)
-  status                    EquipmentStatus @default(AVAILABLE) // Required field
-  imageUrl                  String?         // Required field (nullable)
-  departmentId              String          // Required field
-  category                  String?   // 'Land', 'Building', 'Farm Machinery', 'Lab Equipment', 'HR'
-  itemNameOrDesignation     String?
-  bpsScale                  Int?      // For HR
-  totalQuantityOrPosts      Int?
-  filledOrFunctional        Int?
-  vacantOrNonFunctional     Int?
-  remarksOrLocation         String?
-  createdAt                 DateTime  @default(now())
-  updatedAt                 DateTime  @updatedAt
-  department                Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-
-  @@index([departmentId])
-  @@index([status])
-}
-
-// Agronomy Lab Equipment
-model AgronomyLabEquipment {
-  id             String          @id @default(cuid())
-  name           String          // Required field (equipment_name)
-  type           String          // Required field
-  status         EquipmentStatus @default(AVAILABLE) // Required field
-  imageUrl       String?         // Required field (nullable)
-  departmentId   String          // Required field
-  quantity       Int?
-  focalPerson1   String?   // Dr. Mahmood Alam
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  department     Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-
-  @@index([departmentId])
-  @@index([status])
-}
-
-// Floriculture Station Assets
-model FloricultureStationAssets {
-  id              String          @id @default(cuid())
-  name            String          // Required field (item_name_or_post)
-  type            String          // Required field (category)
-  status          EquipmentStatus @default(AVAILABLE) // Required field
-  imageUrl        String?         // Required field (nullable)
-  departmentId    String          // Required field
-  category        String?   // 'Land', 'Building', 'Farm Machinery', 'Lab Equipment', 'HR'
-  itemNameOrPost  String?
-  bpsScale        String?
-  sanctionedQty   Int?
-  inPositionQty   Int?
-  detailsOrArea   String?   // e.g., '7.50 acre'
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  department      Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-
-  @@index([departmentId])
-  @@index([status])
-}
-
-// RARI Bahawalpur Assets
-model RARIBahawalpurAssets {
-  id              String          @id @default(cuid())
-  name            String          // Required field (item_name)
-  type            String          // Required field (category)
-  status          EquipmentStatus @default(AVAILABLE) // Required field (condition_status)
-  imageUrl        String?         // Required field (nullable)
-  departmentId    String          // Required field
-  category        String?   // 'Land', 'Farm Machinery', 'Lab Equipment', 'HR'
-  makeModelYear   String?   // For Tractors e.g., 'FIAT Dabang 85Hp, 2022'
-  quantity        Int?
-  conditionStatus String?   // 'Working', 'Non Working', 'Out Of Order'
-  useApplication  String?   // Specific for Lab Equipment description
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  department      Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-
-  @@index([departmentId])
-  @@index([status])
-}
-
-// MNSUAM Estate Facilities
-model MNSUAMEstateFacilities {
-  id              String          @id @default(cuid())
-  name            String          // Required field (facility_name_number)
-  type            String          // Required field (facility_type)
-  status          EquipmentStatus @default(AVAILABLE) // Required field
-  imageUrl        String?         // Required field (nullable)
-  departmentId    String          // Required field
-  blockName       String?   // 'Admin block', 'Academic block', etc.
-  facilityType    String?   // 'Syndicate Hall', 'Lecture Hall'
-  capacityPersons Int?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  department      Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-
-  @@index([departmentId])
-  @@index([status])
-}
-
-// Cotton Research Institute (CRI) Assets
-model CRIMultanAssets {
-  id                    String          @id @default(cuid())
-  name                  String          // Required field (item_name)
-  type                  String          // Required field (asset_type)
-  status                EquipmentStatus @default(AVAILABLE) // Required field (operational_status)
-  imageUrl              String?         // Required field (nullable)
-  departmentId          String          // Required field
-  assetType             String?   // 'Lab Equipment', 'Farm Machinery', 'Land/Building'
-  specificationModel    String?
-  labSectionLocation    String?   // e.g., 'Integrated Pest management Laboratory'
-  quantity              Int?
-  purposeFunction       String?
-  operationalStatus     String?   // 'Functional', 'Non-Functional'
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  department            Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-
-  @@index([departmentId])
-  @@index([status])
-}
-
-// Soil & Water Testing Project
-model SoilWaterTestingProject {
-  id                          String          @id @default(cuid())
-  name                        String          // Required field (item_description)
-  type                        String          // Required field (category)
-  status                      EquipmentStatus @default(AVAILABLE) // Required field
-  imageUrl                    String?         // Required field (nullable)
-  departmentId                String          // Required field
-  category                    String?   // 'HR Officers', 'HR Officials', 'Plant & Machinery', 'Civil Work'
-  bps                         Int?
-  quantityRequired            Int?
-  budgetAllocationTotalMillion Decimal? @db.Decimal(10,3)
-  justificationOrYear         String?
-  createdAt                   DateTime  @default(now())
-  updatedAt                   DateTime  @updatedAt
-  department                  Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-
-  @@index([departmentId])
-  @@index([status])
-}
-
-// Entomological Research Sub Station (ERSS) Stock Register
-model ERSSStockRegister {
-  id                     String          @id @default(cuid())
-  name                   String          // Required field (item_name)
-  type                   String          // Required field
-  status                 EquipmentStatus @default(AVAILABLE) // Required field
-  imageUrl               String?         // Required field (nullable)
-  departmentId           String          // Required field
-  registerPageNo         Int?
-  quantityStr            String?   // Stores values like '4 kg', '3 buckets', '200'
-  dateReceived           DateTime?
-  lastVerificationDate   String?
-  currentStatusRemarks   String?   // e.g., 'Shifted to DSR', 'Auctioned', 'Balance Nil'
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
-  department             Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
-
-  @@index([departmentId])
-  @@index([status])
 }

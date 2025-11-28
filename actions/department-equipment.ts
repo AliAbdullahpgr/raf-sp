@@ -102,6 +102,22 @@ export async function getDepartmentEquipment(
         });
         break;
 
+      case "PesticideQCLabData":
+        // @ts-ignore - Prisma client type issue
+        equipment = await prisma.pesticideQCLabData.findMany({
+          where: { departmentId },
+          orderBy: { createdAt: "desc" },
+        });
+        break;
+
+      case "AgriEngineeringMultanRegionData":
+        // @ts-ignore - Prisma client type issue
+        equipment = await prisma.agriEngineeringMultanRegionData.findMany({
+          where: { departmentId },
+          orderBy: { createdAt: "desc" },
+        });
+        break;
+
       default:
         return {
           success: false,
@@ -145,6 +161,8 @@ export async function getDepartmentBySlug(slug: string): Promise<ActionResult> {
       "entomology-research": "Entomology Research Sub-Station",
       "mnsuam-estate": "MNSUAM Estate & Facilities",
       "cotton-research-insititue": "Cotton Research Institute",
+      "pesticide-qc-lab": "Pesticide Quality Control Laboratory",
+      "agri-engineering-multan": "Agricultural Engineering Department",
     };
 
     const departmentName = departmentNameMap[slug];

@@ -98,6 +98,26 @@ const departments = [
       "Research and education in cotton production, pest management, and fiber quality improvement.",
     focalPerson: "Dr. Rashid Ali Hassan",
     designation: "Professor",
+    phone: "+92-61-9210078",
+    email: "rashid.ali@mnsuam.edu.pk",
+  },
+  {
+    name: "Pesticide Quality Control Laboratory",
+    location: "Multan, Punjab",
+    description:
+      "Quality control and testing of pesticides, ensuring safety standards and regulatory compliance for agricultural chemicals.",
+    focalPerson: "Dr. Muhammad Asif",
+    designation: "Chief Scientist",
+    phone: "+92-61-9210085",
+    email: "asif@pesticidelab.gov.pk",
+  },
+  {
+    name: "Agricultural Engineering Department",
+    location: "Multan Region",
+    description:
+      "Agricultural engineering services across Multan region including farm machinery, building infrastructure, and technical support for multiple divisions.",
+    focalPerson: "Engr. Muhammad Akram",
+    designation: "Director Agricultural Engineering",
     phone: "+92-61-9210077",
     email: "ahmad.hassan@mnsuam.edu.pk",
   },
