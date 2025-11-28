@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { RecentEquipment } from "@/types";
-import { EquipmentStatus } from "@prisma/client";
+import { EquipmentStatus } from "@/types/equipment";
 import { StatusBadge } from "@/components/ui/status-badge";
 import {
   useReactTable,

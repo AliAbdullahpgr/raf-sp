@@ -1,4 +1,4 @@
-import { EquipmentStatus } from "@prisma/client";
+import { EquipmentStatus } from "@/types/equipment";
 
 export interface DashboardStats {
   totalEquipment: number;

@@ -12,7 +12,7 @@ import {
   type SortingState,
   type ColumnFiltersState,
 } from "@tanstack/react-table";
-import { EquipmentStatus } from "@prisma/client";
+import { EquipmentStatus } from "@/types/equipment";
 import { format } from "date-fns";
 import { Pencil, Trash2, Search } from "lucide-react";
 import { ConfirmationDialog } from "@/components/ui/confirmation-dialog";

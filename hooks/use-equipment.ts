@@ -12,7 +12,7 @@ import {
   deleteEquipment,
   bulkImportEquipment,
 } from "@/actions/equipment";
-import { EquipmentStatus } from "@prisma/client";
+import { EquipmentStatus } from "@/types/equipment";
 
 interface Equipment {
   id: string;

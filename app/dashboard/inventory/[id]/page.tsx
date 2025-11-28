@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 import { useRouter, useParams } from "next/navigation";
 import { format } from "date-fns";
 import { ArrowLeft, Pencil, Trash2, Package, Plus } from "lucide-react";
-import { EquipmentStatus } from "@prisma/client";
+import { EquipmentStatus } from "@/types/equipment";
 import { useEquipmentById, useDeleteEquipment } from "@/hooks/use-equipment";
 import { useMaintenanceLogs } from "@/hooks/use-maintenance";
 import { EquipmentForm } from "@/components/equipment/equipment-form";

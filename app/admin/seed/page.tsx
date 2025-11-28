@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createFoodScienceEquipment } from "@/actions/food-science-equipment";
 import { useToast } from "@/hooks/use-toast";
-import { EquipmentStatus } from "@prisma/client";
+import { EquipmentStatus } from "@/types/equipment";
 
 const foodScienceEquipmentData = [
   // Value Addition and Food Analysis Lab - Room # 127 Academic Block
