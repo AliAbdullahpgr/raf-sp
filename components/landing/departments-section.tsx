@@ -6,7 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Users, Eye, Building2 } from "lucide-react";
 
-const departments = [
+const allDepartments = [
   {
     id: "food-science-technology",
     name: "Food Science and Technology",
@@ -260,6 +260,9 @@ const departments = [
     email: "ghulam.murtaza@mnsuam.edu.pk",
   },
 ];
+
+// Filter to only show departments with data available
+const departments = allDepartments.filter((dept) => dept.hasData === true);
 
 export function DepartmentsSection() {
   const ref = useRef(null);
