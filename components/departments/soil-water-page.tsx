@@ -31,9 +31,15 @@ interface SoilData {
     email: string;
   };
   budgetData: SoilAsset[];
+  budgetDetails: SoilAsset[];
+  allowances: SoilAsset[];
+  contingent: SoilAsset[];
   hrOfficers: SoilAsset[];
   hrOfficials: SoilAsset[];
   machinery: SoilAsset[];
+  operatingCosts: SoilAsset[];
+  capitalCosts: SoilAsset[];
+  grandTotals: SoilAsset[];
   statistics: {
     totalBudget: number;
     totalHR: number;
@@ -67,6 +73,13 @@ const itemVariants = {
 
 const HR_COLORS = ["#0ea5e9", "#38bdf8"]; // Sky Blue shades
 const BUDGET_COLORS = ["#0ea5e9", "#0284c7", "#0369a1", "#075985"]; // Blue shades
+const NEON_GRADIENT = "bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600";
+const SOFT_PANEL = "border border-cyan-100 shadow-md";
+
+const formatMillions = (value: number | string | null | undefined) => {
+  const num = Number(value ?? 0);
+  return `${Number.isNaN(num) ? "0.00" : num.toFixed(2)} M`;
+};
 
 export function SoilWaterPage() {
   const [data, setData] = useState<SoilData | null>(null);
@@ -142,6 +155,42 @@ export function SoilWaterPage() {
     value: Number(item.budgetAllocationTotalMillion)
   }));
 
+  const budgetDetailRows = [...data.budgetDetails, ...data.allowances, ...data.contingent];
+
+  const operatingTotals = data.operatingCosts.reduce<Record<string, number>>((acc, item) => {
+    acc[item.type] = (acc[item.type] || 0) + (Number(item.budgetAllocationTotalMillion) || 0);
+    return acc;
+  }, {});
+
+  const capitalTotals = data.capitalCosts.reduce<Record<string, number>>((acc, item) => {
+    acc[item.type] = (acc[item.type] || 0) + (Number(item.budgetAllocationTotalMillion) || 0);
+    return acc;
+  }, {});
+
+  const grandTotalValue = data.grandTotals.reduce((sum, item) => sum + (Number(item.budgetAllocationTotalMillion) || 0), 0);
+
+  const budgetDetailMap = budgetDetailRows.reduce<Record<string, number>>((acc, row) => {
+    const key = row.type || row.name || "Other";
+    acc[key] = (acc[key] || 0) + (Number(row.budgetAllocationTotalMillion) || 0);
+    return acc;
+  }, {});
+
+  const budgetDetailChart = Object.entries(budgetDetailMap)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 6);
+
+  const machineryChartData = [...data.machinery]
+    .map((item) => ({ name: item.name, value: item.quantityRequired || 0 }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 6);
+
+  const opCapitalShare = [
+    { name: "Operating", value: Object.values(operatingTotals).reduce((sum, val) => sum + val, 0) },
+    { name: "Capital", value: Object.values(capitalTotals).reduce((sum, val) => sum + val, 0) },
+    { name: "Allowances", value: data.allowances.reduce((sum, row) => sum + (Number(row.budgetAllocationTotalMillion) || 0), 0) },
+  ];
+
   return (
     <DepartmentLayout
       name={data.department.name}
@@ -209,16 +258,17 @@ export function SoilWaterPage() {
             </h2>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-[1.1fr_0.9fr] gap-6">
             <motion.div variants={itemVariants}>
-              <Card className="p-6 h-full border-cyan-200 shadow-lg">
-                <h3 className="text-center text-gray-700 font-medium mb-6">Budget Distribution (Million PKR)</h3>
-                <div className="h-[300px]">
+              <Card className={`p-6 h-full ${SOFT_PANEL}`}>
+                <h3 className="text-center text-lg font-semibold text-cyan-700 mb-1">Budget Distribution (Million PKR)</h3>
+                <p className="text-center text-xs text-gray-500 mb-4">Allocation values by category for 2025-2029.</p>
+                <div className="h-[320px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={budgetChartData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                    <BarChart data={budgetChartData} layout="vertical" margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                       <XAxis type="number" />
-                      <YAxis dataKey="name" type="category" width={50} tick={{fontSize: 12}} />
+                      <YAxis dataKey="name" type="category" width={120} tick={{fontSize: 12}} />
                       <Tooltip 
                         cursor={{fill: 'transparent'}}
                         content={({ active, payload }) => {
@@ -234,7 +284,7 @@ export function SoilWaterPage() {
                           return null;
                         }}
                       />
-                      <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                      <Bar dataKey="value" radius={[0, 6, 6, 0]}>
                         {budgetChartData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={BUDGET_COLORS[index % BUDGET_COLORS.length]} />
                         ))}
@@ -248,19 +298,293 @@ export function SoilWaterPage() {
             <motion.div variants={itemVariants}>
               <div className="grid grid-cols-1 gap-4">
                 {data.budgetData.map((item, index) => (
-                  <Card key={index} className="p-4 border-cyan-100 hover:shadow-md transition-all flex justify-between items-center">
+                  <Card key={index} className="p-4 border-cyan-100 bg-gradient-to-br from-white to-cyan-50/70 hover:shadow-lg transition-all flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                      <div className="bg-cyan-100 p-2 rounded-lg text-cyan-600 font-bold text-xs">
+                      <div className="bg-cyan-100 p-2 rounded-lg text-cyan-700 font-bold text-xs">
                         {item.category}
                       </div>
-                      <div className="font-medium text-gray-700">{item.name}</div>
+                      <div className="font-medium text-gray-800">{item.name}</div>
                     </div>
-                    <div className="text-lg font-bold text-cyan-700">
-                      {item.budgetAllocationTotalMillion} M
+                    <div className="text-xl font-black text-cyan-700">
+                      {formatMillions(item.budgetAllocationTotalMillion)}
                     </div>
                   </Card>
                 ))}
               </div>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Detailed Pay & Allowances */}
+        <section>
+          <motion.div 
+            className="flex items-center gap-3 mb-6"
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+          >
+            <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 via-cyan-500 to-sky-500 shadow-lg">
+              <Coins className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-cyan-600 to-sky-500">
+              Pay, Allowances & Headcount
+            </h2>
+          </motion.div>
+
+          <motion.div variants={itemVariants}>
+            <Card className="p-0 overflow-hidden border-indigo-100 shadow-xl">
+              <div className="bg-gradient-to-r from-indigo-50 to-cyan-50 border-b border-indigo-100 px-6 py-4 flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-indigo-500 font-semibold">Compensation Grid</p>
+                  <p className="text-lg font-bold text-indigo-800">Officers, Officials & allowances in one view</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-indigo-500">Grand Total (calc)</p>
+                  <p className="text-2xl font-black text-indigo-700">{formatMillions(budgetDetailRows.reduce((sum, row) => sum + (Number(row.budgetAllocationTotalMillion) || 0), 0))}</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-white">
+                    <tr className="border-b border-indigo-100">
+                      <th className="text-left py-3 px-4 font-semibold text-indigo-700">Category</th>
+                      <th className="text-left py-3 px-4 font-semibold text-indigo-700">BPS</th>
+                      <th className="text-left py-3 px-4 font-semibold text-indigo-700">Posts</th>
+                      <th className="text-left py-3 px-4 font-semibold text-indigo-700">Code</th>
+                      <th className="text-left py-3 px-4 font-semibold text-indigo-700">Total (M)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-indigo-50">
+                    {budgetDetailRows.map((row, idx) => (
+                      <tr key={`${row.type}-${row.name}-${idx}`} className="hover:bg-indigo-50/40">
+                        <td className="py-3 px-4 text-gray-900 font-medium">
+                          <span className="inline-flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-indigo-400 to-cyan-400" />
+                            {row.name}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">{row.bps ?? "-"}</td>
+                        <td className="py-3 px-4 text-gray-800 font-semibold">{row.quantityRequired ?? "-"}</td>
+                        <td className="py-3 px-4 text-gray-600">{row.category || "-"}</td>
+                        <td className="py-3 px-4 text-indigo-700 font-bold">{formatMillions(row.budgetAllocationTotalMillion)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </motion.div>
+        </section>
+
+        {/* Analytical Highlights */}
+        <section>
+          <motion.div
+            className="flex items-center gap-3 mb-6"
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+          >
+            <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-blue-500 shadow-lg">
+              <Settings className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-3xl font-semibold text-gray-800">
+              Analytical Highlights
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <motion.div variants={itemVariants}>
+              <Card className="p-5 h-full border-cyan-100 bg-white shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-xs text-cyan-500 uppercase tracking-[0.3em]">Budget Composition</p>
+                    <p className="text-lg font-bold text-cyan-700">Detail Share</p>
+                  </div>
+                  <span className="text-xs text-gray-500">Top six contributors</span>
+                </div>
+                <div className="h-[260px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={budgetDetailChart}
+                        dataKey="value"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={90}
+                        paddingAngle={5}
+                      >
+                        {budgetDetailChart.map((entry, index) => (
+                          <Cell key={`detail-${index}`} fill={BUDGET_COLORS[index % BUDGET_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `${Number(value ?? 0).toFixed(2)} M`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-4 text-xs text-neutral-700">
+                  {budgetDetailChart.map((entry) => (
+                    <span key={entry.name} className="bg-white px-3 py-1 rounded-full border border-cyan-100 text-cyan-700 font-semibold">
+                      {entry.name}
+                    </span>
+                  ))}
+                </div>
+              </Card>
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <Card className="p-5 h-full border-indigo-100 bg-white shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase tracking-[0.3em]">Funds Balance</p>
+                    <p className="text-lg font-semibold text-indigo-800">Operating vs Capital</p>
+                  </div>
+                  <span className="text-xs text-gray-500">FY 2026-29</span>
+                </div>
+                <div className="h-[260px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={opCapitalShare}
+                        dataKey="value"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#8884d8"
+                        label={(entry) => `${entry.name}: ${Number(entry.value ?? 0).toFixed(1)}M`}
+                      >
+                        {opCapitalShare.map((entry, index) => (
+                          <Cell key={`share-${index}`} fill={["#06b6d4", "#f97316", "#a855f7"][index]} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => `${Number(value ?? 0).toFixed(2)} M`} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+            </motion.div>
+          </div>
+
+          <div className="w-full">
+            <motion.div variants={itemVariants}>
+              <Card className="p-5 h-full border-emerald-100 bg-gradient-to-br from-white to-emerald-50 shadow-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-xs text-emerald-500 uppercase tracking-[0.3em]">Machinery</p>
+                    <p className="text-lg font-bold text-emerald-800">Top Quantities</p>
+                  </div>
+                  <span className="text-xs text-emerald-600">Qty</span>
+                </div>
+                <div className="h-[320px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={machineryChartData} layout="horizontal" margin={{ top: 5, right: 15, left: 10, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#d1fae5" vertical={false} />
+                      <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-30} textAnchor="end" height={60} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip contentStyle={{ borderRadius: 12, borderColor: "#22c55e" }} />
+                      <Bar dataKey="value" fill="#10b981" radius={[6, 6, 0, 0]}>
+                        {machineryChartData.map((entry, index) => (
+                          <Cell key={`mach-${index}`} fill={`rgba(16,185,129,${0.6 + (index * 0.1)})`} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </Card>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Operating Costs */}
+        <section>
+          <motion.div 
+            className="flex items-center gap-3 mb-6"
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+          >
+            <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 shadow-lg">
+              <Settings className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-emerald-600">
+              Operating Costs Pulse
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Object.entries(operatingTotals).map(([label, value]) => (
+              <motion.div key={label} variants={itemVariants} whileHover={{ scale: 1.02 }}>
+                <Card className="p-5 h-full bg-gradient-to-br from-white to-emerald-50 border-emerald-100 shadow-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-emerald-600 uppercase tracking-wider">{label}</span>
+                    <span className="text-xs px-2 py-1 bg-white rounded-full text-emerald-700 border border-emerald-100">Ops</span>
+                  </div>
+                  <div className="text-3xl font-black text-emerald-700">{formatMillions(value)}</div>
+                  <p className="text-xs text-emerald-700/70 mt-1">FY 2026-29 total</p>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Capital & Maintenance */}
+        <section>
+          <motion.div 
+            className="flex items-center gap-3 mb-6"
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+          >
+            <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500 to-rose-500 shadow-lg">
+              <Microscope className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-amber-600 to-rose-500">
+              Capital & Maintenance
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {Object.entries(capitalTotals).map(([label, value]) => (
+              <motion.div key={label} variants={itemVariants} whileHover={{ scale: 1.02 }}>
+                <Card className="p-5 h-full bg-gradient-to-br from-white to-amber-50 border-amber-100 shadow-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-amber-600 uppercase tracking-wider">{label}</span>
+                    <span className="text-xs px-2 py-1 bg-white rounded-full text-amber-700 border border-amber-100">Infra</span>
+                  </div>
+                  <div className="text-3xl font-black text-amber-700">{formatMillions(value)}</div>
+                  <p className="text-xs text-amber-700/70 mt-1">Long-term investment</p>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Grand Totals */}
+        <section>
+          <motion.div 
+            className="flex items-center gap-3 mb-6"
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+          >
+            <div className="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 shadow-lg">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-fuchsia-500">
+              Grand Totals
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {data.grandTotals.map((item, idx) => (
+              <motion.div key={idx} variants={itemVariants} whileHover={{ scale: 1.02 }}>
+                <Card className="p-5 h-full bg-gradient-to-br from-white to-purple-50 border-purple-100 shadow-lg">
+                  <div className="text-xs font-semibold text-purple-500 uppercase tracking-widest mb-1">{item.name}</div>
+                  <div className="text-3xl font-black text-purple-700">{formatMillions(item.budgetAllocationTotalMillion)}</div>
+                </Card>
+              </motion.div>
+            ))}
+            <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
+              <Card className="p-5 h-full bg-gradient-to-br from-purple-600 to-fuchsia-500 text-white shadow-lg border border-white/20">
+                <div className="text-xs uppercase tracking-[0.2em] text-white/80 mb-1">Overall Total</div>
+                <div className="text-4xl font-black">{formatMillions(grandTotalValue)}</div>
+                <p className="text-xs text-white/80 mt-1">All years combined</p>
+              </Card>
             </motion.div>
           </div>
         </section>
@@ -405,6 +729,43 @@ export function SoilWaterPage() {
               </motion.div>
             ))}
           </div>
+
+          <motion.div variants={itemVariants} className="mt-8">
+            <Card className="p-4 border-teal-100 shadow-lg overflow-hidden">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <div className="text-sm font-semibold text-teal-500 uppercase tracking-wider">Detailed Requirements</div>
+                  <div className="text-2xl font-bold text-teal-800">Plant & Machinery Table</div>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-teal-50 border-b border-teal-100">
+                    <tr>
+                      <th className="text-left py-3 px-4 font-semibold text-teal-700">#</th>
+                      <th className="text-left py-3 px-4 font-semibold text-teal-700">Plant & Machinery</th>
+                      <th className="text-left py-3 px-4 font-semibold text-teal-700">Quantity</th>
+                      <th className="text-left py-3 px-4 font-semibold text-teal-700">Justification</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-teal-50">
+                    {data.machinery.map((item, index) => (
+                      <tr key={item.id} className="hover:bg-teal-50/50">
+                        <td className="py-3 px-4 text-teal-700">{index + 1}</td>
+                        <td className="py-3 px-4 font-medium text-gray-800">{item.name}</td>
+                        <td className="py-3 px-4 text-teal-800 font-semibold">
+                          {item.quantityRequired ?? 0}
+                        </td>
+                        <td className="py-3 px-4 text-gray-600">
+                          {item.justificationOrYear || "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </motion.div>
         </section>
       </motion.div>
     </DepartmentLayout>

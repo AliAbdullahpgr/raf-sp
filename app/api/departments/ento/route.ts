@@ -1,47 +1,122 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { pgPool } from "@/lib/pg";
 
 export async function GET() {
   try {
-    const department = await prisma.department.findUnique({
-      where: { id: "ento" },
-    });
+    const profileQuery = await pgPool.query(
+      `
+        SELECT
+          department_id,
+          department_name,
+          location,
+          focal_person,
+          designation,
+          email,
+          officers,
+          officials,
+          land_acres,
+          rooms,
+          register_title,
+          register_note,
+          compiled_on
+        FROM ento_profile
+        WHERE department_id = $1
+        LIMIT 1;
+      `,
+      ["ento"]
+    );
 
-    if (!department) {
+    if (profileQuery.rows.length === 0) {
       return NextResponse.json(
-        { error: "Department not found" },
+        { error: "Ento profile not found. Run scripts/seed-ento.ts first." },
         { status: 404 }
       );
     }
 
-    const stockItems = await prisma.eRSSStockRegister.findMany({
-      where: { departmentId: "ento" },
-      orderBy: { registerPageNo: "asc" },
-    });
+    const profileRow = profileQuery.rows[0];
+    const profile = {
+      departmentId: profileRow.department_id,
+      departmentName: profileRow.department_name,
+      location: profileRow.location,
+      focalPerson: profileRow.focal_person,
+      designation: profileRow.designation,
+      email: profileRow.email,
+      officers: profileRow.officers,
+      officials: profileRow.officials,
+      landAcres: profileRow.land_acres,
+      rooms: profileRow.rooms,
+      registerTitle: profileRow.register_title,
+      registerNote: profileRow.register_note,
+      compiledOn: profileRow.compiled_on,
+    };
 
-    // Calculate statistics
-    const totalItems = stockItems.length;
-    const uniqueItems = new Set(stockItems.map((item) => item.name)).size;
-    
-    // Group by year received (if available)
-    const itemsByYear = stockItems.reduce((acc, item) => {
-      if (item.dateReceived) {
-        const year = new Date(item.dateReceived).getFullYear().toString();
+    const itemsQuery = await pgPool.query(
+      `
+        SELECT
+          id,
+          item_no,
+          name,
+          quantity_label,
+          date_received,
+          last_verified,
+          last_verification_label,
+          register_label
+        FROM ento_inventory_items
+        ORDER BY item_no ASC;
+      `
+    );
+
+    const items = itemsQuery.rows.map((row) => ({
+      id: row.id,
+      itemNo: row.item_no,
+      name: row.name,
+      quantityLabel: row.quantity_label,
+      dateReceived: row.date_received,
+      lastVerified: row.last_verified,
+      lastVerificationLabel: row.last_verification_label,
+      registerLabel: row.register_label,
+    }));
+
+    const stats = {
+      totalItems: items.length,
+      uniqueItems: new Set(items.map((item) => item.name)).size,
+      itemsByYear: items.reduce<Record<string, number>>((acc, item) => {
+        const year = item.dateReceived
+          ? new Date(item.dateReceived).getUTCFullYear().toString()
+          : "Unknown";
         acc[year] = (acc[year] || 0) + 1;
-      } else {
-        acc["Unknown"] = (acc["Unknown"] || 0) + 1;
-      }
+        return acc;
+      }, {}),
+    };
+
+    const categorizeVerification = (item: typeof items[number]) => {
+      const value =
+        (item.lastVerified && new Date(item.lastVerified).getUTCFullYear().toString()) ||
+        item.lastVerificationLabel;
+
+      if (!value) return "Not Verified";
+
+      const yearMatch = value.match(/(19|20)\d{2}/);
+      if (!yearMatch) return "Not Verified";
+      const year = Number(yearMatch[0]);
+
+      if (year < 2000) return "Before 2000";
+      if (year <= 2010) return "2000-2010";
+      if (year <= 2020) return "2011-2020";
+      return "After 2020";
+    };
+
+    const verificationBuckets = items.reduce<Record<string, number>>((acc, item) => {
+      const bucket = categorizeVerification(item);
+      acc[bucket] = (acc[bucket] || 0) + 1;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
 
     return NextResponse.json({
-      department,
-      stockItems,
-      statistics: {
-        totalItems,
-        uniqueItems,
-        itemsByYear,
-      },
+      profile,
+      items,
+      verificationBuckets,
+      statistics: stats,
     });
   } catch (error) {
     console.error("Error fetching Ento data:", error);

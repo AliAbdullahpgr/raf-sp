@@ -136,6 +136,16 @@ const getTableColumns = (tableType: string) => {
         { key: "quantityOrArea", label: "Quantity/Area" },
         { key: "contactDetails", label: "Contact Details" },
       ];
+    case "ValueAdditionLabEquipment":
+      return [
+        { key: "name", label: "Equipment Name" },
+        { key: "type", label: "Type" },
+        { key: "labName", label: "Lab Name" },
+        { key: "roomNumber", label: "Room Number" },
+        { key: "blockName", label: "Block" },
+        { key: "quantity", label: "Quantity" },
+        { key: "status", label: "Status" },
+      ];
     default:
       return [
         { key: "name", label: "Name" },

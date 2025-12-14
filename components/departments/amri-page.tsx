@@ -63,6 +63,11 @@ const itemVariants = {
 
 const COLORS = ["#10b981", "#ef4444"]; // Green for Functional, Red for Non-Functional
 
+const extractQuantityNumber = (value?: string | null) => {
+  const digits = value?.match(/\d+/g)?.join("") ?? "";
+  return digits || "0";
+};
+
 export function AMRIPage() {
   const [data, setData] = useState<AMRIData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -127,6 +132,19 @@ export function AMRIPage() {
     { name: "Non-Functional", value: data.statistics.nonFunctionalMachinery },
   ];
 
+  const sortedMachinery = [...data.machinery].sort((a, b) => {
+    if (a.functionalStatus === b.functionalStatus) {
+      return 0;
+    }
+    if (a.functionalStatus === "Functional") {
+      return -1;
+    }
+    if (b.functionalStatus === "Functional") {
+      return 1;
+    }
+    return 0;
+  });
+
   return (
     <DepartmentLayout
       name={data.department.name}
@@ -160,10 +178,15 @@ export function AMRIPage() {
             </h2>
           </motion.div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {data.infrastructure?.map((item) => (
-              <motion.div key={item.id} variants={itemVariants} whileHover={{ scale: 1.03 }}>
-                <Card className="p-6 h-full border-orange-100 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-xl transition-all duration-300">
+              <motion.div
+                key={item.id}
+                variants={itemVariants}
+                whileHover={{ scale: 1.03 }}
+                className="h-full"
+              >
+                <Card className="p-6 h-full flex flex-col border-orange-100 bg-gradient-to-br from-white to-orange-50 shadow-md hover:shadow-xl transition-all duration-300">
                   <div className="flex items-start justify-between mb-4">
                     <div className="text-4xl">{item.imageUrl}</div>
                     <Badge variant="outline" className="bg-white/50">{item.type}</Badge>
@@ -192,30 +215,9 @@ export function AMRIPage() {
             </h2>
           </motion.div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
-              <Card className="p-8 text-center bg-gradient-to-br from-white to-blue-50 border-blue-100 shadow-lg">
-                <div className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">Total Machinery</div>
-                <div className="text-6xl font-black text-blue-600">{data.statistics.totalMachinery}</div>
-              </Card>
-            </motion.div>
-            <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
-              <Card className="p-8 text-center bg-gradient-to-br from-white to-green-50 border-green-100 shadow-lg">
-                <div className="text-sm font-semibold text-green-400 uppercase tracking-wider mb-2">Functional</div>
-                <div className="text-6xl font-black text-green-600">{data.statistics.functionalMachinery}</div>
-              </Card>
-            </motion.div>
-            <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
-              <Card className="p-8 text-center bg-gradient-to-br from-white to-red-50 border-red-100 shadow-lg">
-                <div className="text-sm font-semibold text-red-400 uppercase tracking-wider mb-2">Non-Functional</div>
-                <div className="text-6xl font-black text-red-600">{data.statistics.nonFunctionalMachinery}</div>
-              </Card>
-            </motion.div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <motion.div variants={itemVariants}>
-              <Card className="p-6 bg-white shadow-lg border-slate-100">
+          <div className="grid gap-6 mb-8 md:grid-cols-[minmax(0,50%)_minmax(0,50%)] items-start">
+            <motion.div variants={itemVariants} className="h-full">
+              <Card className="p-6 h-full bg-white shadow-lg border-slate-100">
                 <h3 className="text-lg font-bold text-slate-800 mb-4">Functional Status Distribution</h3>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
@@ -239,6 +241,29 @@ export function AMRIPage() {
               </Card>
             </motion.div>
 
+            <motion.div variants={itemVariants} className="flex flex-col gap-6">
+              <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
+                <Card className="p-8 h-full text-center bg-gradient-to-br from-white to-blue-50 border-blue-100 shadow-lg">
+                  <div className="text-sm font-semibold text-blue-400 uppercase tracking-wider mb-2">Total Machinery</div>
+                  <div className="text-6xl font-black text-blue-600">{data.statistics.totalMachinery}</div>
+                </Card>
+              </motion.div>
+
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
+                  <Card className="p-8 h-full text-center bg-gradient-to-br from-white to-green-50 border-green-100 shadow-lg">
+                    <div className="text-sm font-semibold text-green-400 uppercase tracking-wider mb-2">Functional</div>
+                    <div className="text-6xl font-black text-green-600">{data.statistics.functionalMachinery}</div>
+                  </Card>
+                </motion.div>
+                <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
+                  <Card className="p-8 h-full text-center bg-gradient-to-br from-white to-red-50 border-red-100 shadow-lg">
+                    <div className="text-sm font-semibold text-red-400 uppercase tracking-wider mb-2">Non-Functional</div>
+                    <div className="text-6xl font-black text-red-600">{data.statistics.nonFunctionalMachinery}</div>
+                  </Card>
+                </motion.div>
+              </div>
+            </motion.div>
           </div>
         </section>
 
@@ -257,8 +282,8 @@ export function AMRIPage() {
             </h2>
           </motion.div>
 
-          <motion.div variants={itemVariants}>
-            <Card className="overflow-hidden shadow-xl border-slate-200">
+          <motion.div variants={itemVariants} className="h-full">
+            <Card className="overflow-hidden shadow-xl border-slate-200 h-full">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-slate-50 border-b border-slate-200">
@@ -270,11 +295,11 @@ export function AMRIPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {data.machinery.map((item, index) => (
+                    {sortedMachinery.map((item, index) => (
                       <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="py-3 px-6 text-slate-500">{index + 1}</td>
                         <td className="py-3 px-6 font-medium text-slate-800">{item.name}</td>
-                        <td className="py-3 px-6 text-slate-600">{item.quantityOrArea}</td>
+                        <td className="py-3 px-6 text-slate-600">{extractQuantityNumber(item.quantityOrArea)}</td>
                         <td className="py-3 px-6">
                           <div className="flex items-center gap-2">
                             {item.functionalStatus === "Functional" ? (

@@ -47,6 +47,7 @@ model Department {
   pesticideQCLabData              PesticideQCLabData[]
   rariBahawalpurAssets            RARIBahawalpurAssets[]
   soilWaterTestingProject         SoilWaterTestingProject[]
+  valueAdditionLabEquipment       ValueAdditionLabEquipment[]
   users                           User[]
 
   @@index([name])
@@ -152,6 +153,7 @@ model AgronomyLabEquipment {
   departmentId String
   quantity     Int?
   focalPerson1 String?
+  displayOrder Int?
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   status       EquipmentStatus @default(AVAILABLE)
@@ -211,10 +213,33 @@ model MNSUAMEstateFacilities {
   blockName       String?
   facilityType    String?
   capacityPersons Int?
+  capacityLabel   String?
+  displayOrder    Int?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   status          EquipmentStatus @default(AVAILABLE)
   department      Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model ValueAdditionLabEquipment {
+  id           String          @id @default(cuid())
+  name         String
+  type         String
+  imageUrl     String?
+  departmentId String
+  labName      String?         // "Value Addition and Food Analysis Lab" or "Nutrient Analytical & Food Processing Lab"
+  roomNumber   String?         // Room # 127 or Room # 114-115
+  blockName    String?         // "Academic Block" or "Postgraduate Block"
+  quantity     Int             @default(1)
+  focalPerson  String?         // Dr. Shabbir Ahmad
+  displayOrder Int?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  status       EquipmentStatus @default(AVAILABLE)
+  department   Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   @@index([departmentId])
   @@index([status])
@@ -277,7 +302,6 @@ model ERSSStockRegister {
   type                 String
   imageUrl             String?
   departmentId         String
-  registerPageNo       Int?
   quantityStr          String?
   dateReceived         DateTime?
   lastVerificationDate String?

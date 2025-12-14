@@ -78,6 +78,7 @@ async function getDepartmentSpecificStats(
       rariAssets,
       pesticideQCLab,
       agriEngineeringMultan,
+      valueAdditionEquipment,
     ] = await Promise.all([
       // @ts-ignore - Prisma client type issue
       prisma.foodAnalysisLabEquipment.findMany({ where: { departmentId } }),
@@ -105,6 +106,8 @@ async function getDepartmentSpecificStats(
       prisma.agriEngineeringMultanRegionData.findMany({
         where: { departmentId },
       }),
+      // @ts-ignore - Prisma client type issue
+      prisma.valueAdditionLabEquipment.findMany({ where: { departmentId } }),
     ]);
 
     // Combine all equipment from all tables
@@ -121,6 +124,7 @@ async function getDepartmentSpecificStats(
       ...rariAssets,
       ...pesticideQCLab,
       ...agriEngineeringMultan,
+      ...valueAdditionEquipment,
     ];
 
     const totalEquipment = allEquipment.length;
@@ -238,6 +242,7 @@ export async function getAllDepartmentsStats(): Promise<DashboardStats> {
       rariAssets,
       pesticideQCLab,
       agriEngineeringMultan,
+      valueAdditionEquipment,
     ] = await Promise.all([
       // @ts-ignore - Prisma client type issue
       prisma.foodAnalysisLabEquipment.findMany(),
@@ -263,6 +268,8 @@ export async function getAllDepartmentsStats(): Promise<DashboardStats> {
       prisma.pesticideQCLabData.findMany(),
       // @ts-ignore - Prisma client type issue
       prisma.agriEngineeringMultanRegionData.findMany(),
+      // @ts-ignore - Prisma client type issue
+      prisma.valueAdditionLabEquipment.findMany(),
     ]);
 
     // Combine all equipment from all tables
@@ -279,6 +286,7 @@ export async function getAllDepartmentsStats(): Promise<DashboardStats> {
       ...rariAssets,
       ...pesticideQCLab,
       ...agriEngineeringMultan,
+      ...valueAdditionEquipment,
     ];
 
     const totalEquipment = allEquipment.length;

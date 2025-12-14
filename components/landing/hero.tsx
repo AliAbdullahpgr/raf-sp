@@ -67,7 +67,7 @@ export function Hero() {
             variants={fadeInUp}
             className="text-2xl sm:text-3xl font-light text-muted-foreground mb-8"
           >
-            Empowering Research & Innovation
+            Digital Assets Management System
           </motion.p>
 
           {/* Description */}

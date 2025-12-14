@@ -1,3 +1,5 @@
+
+## Estate Data
 University Facilities
 Following facilities available in MNSUAM can be utilized for South Punjab Regional Agriculture Forum.
 Admin block 
@@ -21,7 +23,7 @@ All the halls and meeting rooms are fully air conditioned and connected with bac
 
 
 
-Agronomy Equipment
+## Agronomy Department
 Focal Persons
 Dr. Mahmood Alam
 Directorate of University Farms
@@ -59,4 +61,41 @@ Sr. No.	Name of Equipment	Quantity
 21	DIGITAL VERNIER CALIPER	1
 22	AQUARIUM PUMP	        2
 
+
+#Value Addition and Food Analysis Lab       
+Focal Person: Dr. Shabbir Ahmad 	Email: Shabbir.ahmad@mnsuam.edu.pk
+Quantity: 1 and Functional.
+Lab Name: Value Addition and Food Analysis Lab       Room # 127      Academic Block
+1. Kjeldhal Apparatus 
+       Digestion unit and Distillation unit
+2. Water Activity meter
+3. Soxhlet Apparatus
+4. Analytical Weighing Balance
+5. Autoclave
+6. Texture Analyzer
+7. Freeze Dryer
+8. Pulse Electric Field
+9. Ozonation chamber
+10. Pasteurizer
+11. Fermenter 
+Lab Name: Nutrient Analytical & Food Processing Lab    Room # 114-115      Postgraduate Block
+1.	Kjeldhal Apparatus
+2.	Digestion unit and Distillation unit
+2. Moisture Analyzer
+3. Soxhlet Apparatus
+4. Analytical Weighing Balance
+5. Muffle FUrnace
+6. Viscometer
+7. Farinograph
+8. Fume Hood
+9. Desiccator
+10. Gerber machine
+11. Rose head machine
+12. Abrasive peeler
+13. Refrigerator
+14. China Chakki
+15. Grinder
+16. Cheese press
+17. Cheese vat
+18. Cream separator
 

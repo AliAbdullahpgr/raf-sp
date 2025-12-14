@@ -1,45 +1,72 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { DepartmentLayout } from "./department-layout";
-import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Bug, Calendar, FileText, Package, Search, Users, User, MapPin, Home } from "lucide-react";
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
 import {
-  BarChart,
   Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
 } from "recharts";
+import {
+  BadgeCheck,
+  Bug,
+  Calendar,
+  ClipboardList,
+  Clock3,
+  Compass,
+  Building2,
+  Factory,
+  Globe2,
+  Layers,
+  Microscope,
+  Search,
+  MapPin,
+  Users,
+} from "lucide-react";
+
+import { DepartmentLayout } from "./department-layout";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 
-interface StockItem {
-  id: string;
-  name: string;
-  registerPageNo: number | null;
-  quantityStr: string | null;
-  dateReceived: string | null;
-  lastVerificationDate: string | null;
-  currentStatusRemarks: string | null;
+interface EntoProfile {
+  departmentId: string;
+  departmentName: string;
+  location: string | null;
+  focalPerson: string | null;
+  designation: string | null;
+  email: string | null;
+  officers: number | null;
+  officials: number | null;
+  landAcres: number | null;
+  rooms: number | null;
+  registerTitle: string | null;
+  registerNote: string | null;
+  compiledOn: string | null;
 }
 
-interface EntoData {
-  department: {
-    id: string;
-    name: string;
-    location: string;
-    description: string;
-    focalPerson: string;
-    designation: string;
-    phone: string;
-    email: string;
-  };
-  stockItems: StockItem[];
+interface EntoInventoryItem {
+  id: number;
+  itemNo: number;
+  name: string;
+  quantityLabel: string | null;
+  dateReceived: string | null;
+  lastVerified: string | null;
+  lastVerificationLabel: string | null;
+  registerLabel: string | null;
+}
+
+interface EntoApiResponse {
+  profile: EntoProfile;
+  items: EntoInventoryItem[];
+  verificationBuckets: Record<string, number>;
   statistics: {
     totalItems: number;
     uniqueItems: number;
@@ -47,51 +74,123 @@ interface EntoData {
   };
 }
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-    },
-  },
+const PIE_COLORS = ["#0ea5e9", "#22c55e", "#f97316", "#a855f7", "#64748b"];
+
+const parseQuantityValue = (value?: string | null) => {
+  if (!value) return 0;
+  const match = value.match(/(\d+(\.\d+)?)/);
+  return match ? Number(match[1]) : 0;
 };
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: {
-      type: "spring" as const,
-      stiffness: 100,
-    },
-  },
+const formatDate = (value?: string | null) => {
+  if (!value) return "-";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleDateString();
 };
 
 export function EntoPage() {
-  const [data, setData] = useState<EntoData | null>(null);
+  const [data, setData] = useState<EntoApiResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [yearFilter, setYearFilter] = useState<string>("all");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/departments/ento")
       .then((res) => res.json())
-      .then((data) => {
-        setData(data);
+      .then((payload) => {
+        if (payload?.error) {
+          setError(payload.error);
+        } else {
+          setData(payload);
+        }
         setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching Ento data:", error);
+        setError("Unable to load ERSS data.");
         setLoading(false);
       });
   }, []);
+
+  const yearData = useMemo(() => {
+    if (!data?.statistics?.itemsByYear) return [];
+    return Object.entries(data.statistics.itemsByYear)
+      .map(([year, count]) => ({ year, count }))
+      .sort((a, b) => (a.year === "Unknown" ? 1 : b.year === "Unknown" ? -1 : a.year.localeCompare(b.year)));
+  }, [data]);
+
+  const verificationChartData = useMemo(() => {
+    if (!data?.verificationBuckets) return [];
+    return Object.entries(data.verificationBuckets)
+      .map(([label, value]) => ({ name: label, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [data]);
+
+  const topQuantities = useMemo(() => {
+    if (!data?.items) return [];
+    return [...data.items]
+      .map((item) => ({
+        name: item.name,
+        value: parseQuantityValue(item.quantityLabel),
+      }))
+      .filter((item) => item.value > 0)
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+  }, [data]);
+
+  const filteredItems = useMemo(() => {
+    if (!data?.items) return [];
+    return data.items
+      .filter((item) => item.name.toLowerCase().includes(searchTerm.toLowerCase()))
+      .filter((item) => {
+        if (yearFilter === "all") return true;
+        if (yearFilter === "unknown") return !item.dateReceived;
+        if (!item.dateReceived) return false;
+        const year = new Date(item.dateReceived).getFullYear().toString();
+        return year === yearFilter;
+      })
+      .sort((a, b) => a.itemNo - b.itemNo);
+  }, [data, searchTerm, yearFilter]);
+
+  const latestVerification = useMemo(() => {
+    if (!data?.items?.length) return "-";
+    const candidates = data.items
+      .map((item) => ({
+        year: item.lastVerified ? new Date(item.lastVerified).getFullYear() : null,
+        label: item.lastVerificationLabel,
+      }))
+      .filter((entry) => entry.year || entry.label);
+
+    if (!candidates.length) return "-";
+    const withYear = candidates.filter((c) => c.year);
+    if (withYear.length) {
+      const maxYear = Math.max(...withYear.map((c) => c.year || 0));
+      return maxYear.toString();
+    }
+    return candidates[0]?.label || "-";
+  }, [data]);
+
+  const earliestReceipt = useMemo(() => {
+    if (!data?.items?.length) return null;
+    const years = data.items
+      .filter((item) => item.dateReceived)
+      .map((item) => new Date(item.dateReceived as string).getFullYear());
+    if (!years.length) return null;
+    return Math.min(...years);
+  }, [data]);
+
+  const compiledOn = useMemo(() => formatDate(data?.profile?.compiledOn), [data]);
+  const registerLabel = useMemo(() => {
+    if (!data) return "Non-consumable items";
+    return data.profile.registerTitle || data.items[0]?.registerLabel || "Non-consumable items";
+  }, [data]);
 
   if (loading) {
     return (
       <DepartmentLayout
         name="Entomological Research Sub Station"
-        description="Loading..."
+        description="Loading ERSS Multan inventory..."
         image="/images/ent.jpg.jpg"
         focalPerson={{
           name: "Loading...",
@@ -100,9 +199,9 @@ export function EntoPage() {
           email: "",
         }}
       >
-        <div className="space-y-8">
-          <Skeleton className="h-32 w-full" />
-          <Skeleton className="h-64 w-full" />
+        <div className="space-y-6">
+          <Skeleton className="h-36 w-full" />
+          <Skeleton className="h-20 w-full" />
           <Skeleton className="h-96 w-full" />
         </div>
       </DepartmentLayout>
@@ -124,258 +223,399 @@ export function EntoPage() {
       >
         <Card className="p-6">
           <p className="text-muted-foreground">
-            No data available. Please contact the administrator.
+            {error ? error : "Entomology data is not available. Run the ento seed and refresh."}
           </p>
         </Card>
       </DepartmentLayout>
     );
   }
 
-  // Prepare chart data
-  const yearData = Object.entries(data.statistics.itemsByYear)
-    .map(([year, count]) => ({ year, count }))
-    .sort((a, b) => (a.year === "Unknown" ? 1 : b.year === "Unknown" ? -1 : a.year.localeCompare(b.year)));
-
-  // Filter items
-  const filteredItems = data.stockItems.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <DepartmentLayout
-      name={data.department.name}
-      description={data.department.description || "Advanced research on insect pests, beneficial insects, and integrated pest management strategies for sustainable agriculture."}
+      name={data.profile.departmentName || "Entomological Research Sub Station"}
+      description={
+        data.profile.registerNote ||
+        "Advanced research on insect pests, beneficial insects, and integrated pest management strategies for sustainable agriculture."
+      }
       image="/images/ent.jpg.jpg"
       focalPerson={{
-        name: data.department.focalPerson || "Dr. Asifa Hameed",
-        designation: data.department.designation || "Principal Scientist",
-        phone: data.department.phone || "+92-61-9210075",
-        email: data.department.email || "asifa_hameed_sheikh@yahoo.com",
+        name: data.profile.focalPerson || "Dr. Asifa Hameed",
+        designation: data.profile.designation || "Principal Scientist",
+        phone: "+92-61-9210075",
+        email: data.profile.email || "asifa_hameed_sheikh@yahoo.com",
       }}
     >
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-10"
-      >
-        {/* Department Resources */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <motion.div variants={itemVariants} whileHover={{ scale: 1.05 }}>
-            <Card className="p-6 flex flex-col items-center justify-center bg-white border-green-100 shadow-md hover:shadow-lg transition-all">
-              <div className="p-3 bg-green-100 rounded-full text-green-600 mb-3">
-                <Users className="w-6 h-6" />
-              </div>
-              <div className="text-3xl font-bold text-green-700">3</div>
-              <div className="text-xs font-medium text-green-500 uppercase tracking-wide">Officers</div>
-            </Card>
-          </motion.div>
-          <motion.div variants={itemVariants} whileHover={{ scale: 1.05 }}>
-            <Card className="p-6 flex flex-col items-center justify-center bg-white border-emerald-100 shadow-md hover:shadow-lg transition-all">
-              <div className="p-3 bg-emerald-100 rounded-full text-emerald-600 mb-3">
-                <User className="w-6 h-6" />
-              </div>
-              <div className="text-3xl font-bold text-emerald-700">2</div>
-              <div className="text-xs font-medium text-emerald-500 uppercase tracking-wide">Officials</div>
-            </Card>
-          </motion.div>
-          <motion.div variants={itemVariants} whileHover={{ scale: 1.05 }}>
-            <Card className="p-6 flex flex-col items-center justify-center bg-white border-teal-100 shadow-md hover:shadow-lg transition-all">
-              <div className="p-3 bg-teal-100 rounded-full text-teal-600 mb-3">
-                <MapPin className="w-6 h-6" />
-              </div>
-              <div className="text-3xl font-bold text-teal-700">3.5</div>
-              <div className="text-xs font-medium text-teal-500 uppercase tracking-wide">Acres Land</div>
-            </Card>
-          </motion.div>
-          <motion.div variants={itemVariants} whileHover={{ scale: 1.05 }}>
-            <Card className="p-6 flex flex-col items-center justify-center bg-white border-cyan-100 shadow-md hover:shadow-lg transition-all">
-              <div className="p-3 bg-cyan-100 rounded-full text-cyan-600 mb-3">
-                <Home className="w-6 h-6" />
-              </div>
-              <div className="text-3xl font-bold text-cyan-700">5</div>
-              <div className="text-xs font-medium text-cyan-500 uppercase tracking-wide">Rooms Occupied</div>
-            </Card>
-          </motion.div>
-        </div>
-
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
-            <Card className="p-8 text-center bg-gradient-to-br from-white to-green-50 border-green-100 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="flex justify-center mb-4">
-                <div className="p-4 bg-green-100 rounded-full text-green-600 shadow-inner">
-                  <Package className="w-8 h-8" />
-                </div>
-              </div>
-              <div className="text-sm font-semibold text-green-400 uppercase tracking-wider mb-2">
-                Total Items
-              </div>
-              <div className="text-5xl font-black text-green-600">
-                {data.statistics.totalItems}
-              </div>
-            </Card>
-          </motion.div>
-          <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
-            <Card className="p-8 text-center bg-gradient-to-br from-white to-emerald-50 border-emerald-100 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="flex justify-center mb-4">
-                <div className="p-4 bg-emerald-100 rounded-full text-emerald-600 shadow-inner">
-                  <Bug className="w-8 h-8" />
-                </div>
-              </div>
-              <div className="text-sm font-semibold text-emerald-400 uppercase tracking-wider mb-2">
-                Unique Items
-              </div>
-              <div className="text-5xl font-black text-emerald-600">
-                {data.statistics.uniqueItems}
-              </div>
-            </Card>
-          </motion.div>
-          <motion.div variants={itemVariants} whileHover={{ scale: 1.02 }}>
-            <Card className="p-8 text-center bg-gradient-to-br from-white to-teal-50 border-teal-100 shadow-lg hover:shadow-xl transition-all duration-300">
-              <div className="flex justify-center mb-4">
-                <div className="p-4 bg-teal-100 rounded-full text-teal-600 shadow-inner">
-                  <Calendar className="w-8 h-8" />
-                </div>
-              </div>
-              <div className="text-sm font-semibold text-teal-400 uppercase tracking-wider mb-2">
-                Years Covered
-              </div>
-              <div className="text-5xl font-black text-teal-600">
-                {yearData.length}
-              </div>
-            </Card>
-          </motion.div>
-        </div>
-
-        {/* Charts Section */}
-        <section>
-          <motion.div
-            className="flex items-center gap-3 mb-6"
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-          >
-            <div className="p-3 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 shadow-lg">
-              <Calendar className="w-6 h-6 text-white" />
+      <div className="space-y-10">
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-amber-100 text-amber-700 border border-amber-200">
+              <Building2 className="w-5 h-5" />
             </div>
-            <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-600 to-emerald-600">
-              Inventory Timeline
-            </h2>
-          </motion.div>
-
-          <Card className="p-6 bg-white shadow-lg border-green-100">
-            <h3 className="text-lg font-bold text-green-900 mb-4">
-              Items Received by Year
-            </h3>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={yearData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#dcfce7" />
-                  <XAxis dataKey="year" tick={{ fill: '#166534' }} />
-                  <YAxis tick={{ fill: '#166534' }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      border: '1px solid #22c55e',
-                      borderRadius: '8px',
-                      fontWeight: 'bold'
-                    }}
-                  />
-                  <Bar dataKey="count" fill="#22c55e" radius={[4, 4, 0, 0]}>
-                    {yearData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={['#22c55e', '#16a34a', '#15803d', '#166534'][index % 4]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Card>
-        </section>
-
-        {/* Inventory List */}
-        <section>
-          <motion.div
-            className="flex items-center justify-between gap-3 mb-6"
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-teal-400 to-cyan-500 shadow-lg">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-600 to-cyan-600">
-                Stock Register
-              </h2>
-            </div>
-            <div className="relative w-64">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search items..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 border-teal-200 focus:ring-teal-500"
-              />
-            </div>
-          </motion.div>
-
-          <Card className="overflow-hidden bg-white shadow-lg border-teal-100">
-            <div className="p-6 bg-gradient-to-r from-teal-50 to-cyan-50 border-b border-teal-100">
-              <h3 className="text-lg font-bold text-teal-900 flex items-center gap-2">
-                <Package className="w-5 h-5 text-teal-600" /> Non-Consumable Items
+            <div>
+              <p className="text-xs uppercase tracking-wide text-amber-600">
+                Campus & people
+              </p>
+              <h3 className="text-xl font-semibold text-slate-900">
+                Land, team, and inventory snapshot
               </h3>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-teal-800 uppercase bg-teal-50/50 sticky top-0">
-                  <tr>
-                    <th className="px-6 py-4 font-bold">Page #</th>
-                    <th className="px-6 py-4 font-bold">Item Name</th>
-                    <th className="px-6 py-4 font-bold">Quantity</th>
-                    <th className="px-6 py-4 font-bold">Date Received</th>
-                    <th className="px-6 py-4 font-bold">Last Verification</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-teal-50">
-                  {filteredItems.length > 0 ? (
-                    filteredItems.map((item) => (
-                      <tr
-                        key={item.id}
-                        className="hover:bg-teal-50/30 transition-colors"
-                      >
-                        <td className="px-6 py-4 font-medium text-teal-900/70">
-                          {item.registerPageNo || "-"}
-                        </td>
-                        <td className="px-6 py-4 font-medium text-gray-900">
-                          {item.name}
-                        </td>
-                        <td className="px-6 py-4 text-gray-600">
-                          {item.quantityStr}
-                        </td>
-                        <td className="px-6 py-4 text-gray-600">
-                          {item.dateReceived
-                            ? new Date(item.dateReceived).toLocaleDateString()
-                            : "-"}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-xs font-semibold shadow-sm">
-                            {item.lastVerificationDate || "Pending"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card className="p-7 border border-slate-100 bg-white shadow-lg shadow-amber-50/70">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                    Land
+                  </p>
+                  <p className="text-3xl font-extrabold text-slate-900">
+                    {data.profile.landAcres
+                      ? `${data.profile.landAcres} ac`
+                      : "-"}
+                  </p>
+                </div>
+                <MapPin className="w-7 h-7 text-amber-600" />
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                Footprint dedicated to entomology
+              </p>
+            </Card>
+
+            <Card className="p-7 border border-slate-100 bg-white shadow-lg shadow-amber-50/70">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                    Human resources
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {data.profile.officers ?? 0} officers
+                  </p>
+                </div>
+                <Users className="w-7 h-7 text-amber-700" />
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                On-ground scientific and support team
+              </p>
+            </Card>
+            <Card className="p-7 border border-slate-100 bg-white shadow-lg shadow-amber-50/70">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">
+                    Human resources
+                  </p>
+                  <p className="text-2xl font-bold text-slate-900">
+                    {data.profile.officials ?? 0} officials
+                  </p>
+                </div>
+                <Users className="w-7 h-7 text-amber-700" />
+              </div>
+              <p className="text-xs text-slate-500 mt-2">
+                On-ground scientific and support team
+              </p>
+            </Card>
+
+            <Card className="p-7 border border-amber-100 bg-gradient-to-br from-amber-500 to-orange-400 text-white shadow-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-white/80">
+                    Total items
+                  </p>
+                  <p className="text-3xl font-black">
+                    {data.statistics.totalItems}
+                  </p>
+                </div>
+                <Factory className="w-8 h-8 text-white/90" />
+              </div>
+              <p className="text-xs text-white/80 mt-2">
+                All non-consumable assets on record
+              </p>
+            </Card>
+
+            <Card className="p-7 border border-cyan-100 bg-gradient-to-br from-cyan-500 to-sky-500 text-white shadow-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-white/80">
+                    Unique items
+                  </p>
+                  <p className="text-3xl font-black">
+                    {data.statistics.uniqueItems}
+                  </p>
+                </div>
+                <Microscope className="w-8 h-8 text-white/90" />
+              </div>
+              <p className="text-xs text-white/80 mt-2">
+                Distinct equipment lines in the register
+              </p>
+            </Card>
+          </div>
+        </section>
+
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-cyan-100 text-cyan-700 border border-cyan-200">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wide text-cyan-600">
+                Inventory insights
+              </p>
+              <h3 className="text-xl font-semibold text-slate-900">
+                Receipts, verification, and volume
+              </h3>
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-1 gap-6">
+            <Card className="lg:col-span-2 p-8 border-slate-100 shadow-sm">
+              <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-cyan-700" />
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    Receipts over time
+                  </h3>
+                </div>
+                <Badge
+                  variant="outline"
+                  className="border-cyan-100 text-cyan-700"
+                >
+                  Year-by-year arrivals
+                </Badge>
+              </div>
+              <div className="h-[260px]  w-full min-w-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={yearData}
+                    margin={{ top: 10, right: 20, left: 0, bottom: -10 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="year" stroke="#1f2937" />
+                    <YAxis stroke="#1f2937" />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: 10,
+                        border: "1px solid #e2e8f0",
+                        boxShadow: "0 10px 30px rgba(0,0,0,0.08)",
+                      }}
+                    />
+                    <Bar dataKey="count" radius={[6, 6, 0, 0]}>
+                      {yearData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${entry.year}-${index}`}
+                          fill={
+                            ["#0ea5e9", "#22c55e", "#f97316", "#6366f1"][
+                              index % 4
+                            ]
+                          }
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </Card>
+
+            <div className="space-y-6">
+              <Card className="p-6 border-emerald-100 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <BadgeCheck className="w-5 h-5 text-emerald-700" />
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    Verification cadence
+                  </h3>
+                </div>
+                <div className="h-64 w-full min-w-0">
+                  {verificationChartData.length ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={verificationChartData}
+                          dataKey="value"
+                          nameKey="name"
+                          innerRadius={50}
+                          outerRadius={80}
+                          paddingAngle={3}
+                          label={({ name, value }) => `${name} (${value})`}
+                        >
+                          {verificationChartData.map((entry, index) => (
+                            <Cell
+                              key={`verify-${index}`}
+                              fill={PIE_COLORS[index % PIE_COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
                   ) : (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                        No items found matching "{searchTerm}"
+                    <div className="h-full flex items-center justify-center text-sm text-slate-500">
+                      No verification history available
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs text-slate-600 mt-3">
+                  {verificationChartData.map((bucket, idx) => (
+                    <span
+                      key={bucket.name}
+                      className="px-2.5 py-1 rounded-full border"
+                      style={{
+                        borderColor: PIE_COLORS[idx % PIE_COLORS.length],
+                        backgroundColor: `${
+                          PIE_COLORS[idx % PIE_COLORS.length]
+                        }15`,
+                      }}
+                    >
+                      {bucket.name}: {bucket.value}
+                    </span>
+                  ))}
+                </div>
+              </Card>
+
+              <Card className="p-6 border-slate-100 shadow-sm">
+                <div className="flex items-center gap-2 mb-3">
+                  <Compass className="w-5 h-5 text-slate-700" />
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    High-volume pieces
+                  </h3>
+                </div>
+                <div className="h-64 w-full min-w-0">
+                  {topQuantities.length ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={topQuantities}
+                        layout="vertical"
+                        margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis type="number" stroke="#1f2937" />
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          width={140}
+                          tick={{ fontSize: 11 }}
+                        />
+                        <Tooltip />
+                        <Bar
+                          dataKey="value"
+                          radius={[0, 6, 6, 0]}
+                          fill="#0ea5e9"
+                        />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-sm text-slate-500">
+                      No quantity information captured
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        <Card className="p-6 border-slate-100 shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                <ClipboardList className="w-6 h-6 text-emerald-700" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-slate-900">
+                  Full inventory register
+                </h3>
+                <p className="text-sm text-slate-600">{registerLabel}</p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search by item name"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 w-60"
+                />
+              </div>
+              <select
+                value={yearFilter}
+                onChange={(e) => setYearFilter(e.target.value)}
+                className="border border-slate-200 rounded-lg text-sm px-3 py-2 text-slate-700"
+              >
+                <option value="all">All years</option>
+                <option value="unknown">Unknown year</option>
+                {yearData
+                  .filter((entry) => entry.year !== "Unknown")
+                  .map((entry) => (
+                    <option key={entry.year} value={entry.year}>
+                      {entry.year}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-slate-100">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-slate-700">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold">#</th>
+                  <th className="px-4 py-3 text-left font-semibold">
+                    Item name
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold">
+                    Quantity
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold">
+                    Date received
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold">
+                    Last verification
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredItems.length ? (
+                  filteredItems.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-emerald-50/50 transition-colors"
+                    >
+                      <td className="px-4 py-3 text-slate-700 font-semibold">
+                        {item.itemNo}
+                      </td>
+                      <td className="px-4 py-3 text-slate-900 font-medium">
+                        {item.name}
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">
+                        {item.quantityLabel || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">
+                        {formatDate(item.dateReceived)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge
+                          variant="outline"
+                          className="border-emerald-200 text-emerald-700"
+                        >
+                          {item.lastVerificationLabel ||
+                            formatDate(item.lastVerified)}
+                        </Badge>
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </section>
-      </motion.div>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-4 py-10 text-center text-slate-500"
+                    >
+                      No items match your search.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
     </DepartmentLayout>
   );
 }

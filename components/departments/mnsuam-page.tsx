@@ -38,7 +38,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Facility {
   id: string;
@@ -46,6 +46,7 @@ interface Facility {
   blockName: string | null;
   facilityType: string | null;
   capacityPersons: number | null;
+  capacityLabel?: string | null;
   imageUrl: string | null;
   type: string;
 }
@@ -67,6 +68,19 @@ interface BlockSummary {
 interface EquipmentTypeStat {
   type: string;
   count: number;
+}
+
+interface ValueAdditionEquipment {
+  id: string;
+  name: string;
+  type: string;
+  labName: string | null;
+  roomNumber: string | null;
+  blockName: string | null;
+  quantity: number;
+  focalPerson: string | null;
+  displayOrder?: number | null;
+  status?: string;
 }
 
 interface MNSUAMData {
@@ -91,9 +105,14 @@ interface MNSUAMData {
       totalUnits: number;
       equipmentByType: EquipmentTypeStat[];
     };
+    valueAdditionSummary?: {
+      totalEquipment: number;
+      totalUnits: number;
+    };
   };
   focalPersons: { name: string; role: string; email: string }[];
   notes: string;
+  valueAdditionEquipment: ValueAdditionEquipment[];
 }
 
 const piePalette = ["#166534", "#15803d", "#16a34a", "#22c55e", "#4ade80", "#86efac"];
@@ -114,6 +133,7 @@ const getFacilityIcon = (type: string | null, name: string) => {
 export function MNSUAMPage() {
   const [data, setData] = useState<MNSUAMData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("estate");
 
   useEffect(() => {
     fetch("/api/departments/mnsuam")
@@ -142,6 +162,72 @@ export function MNSUAMPage() {
       ...item,
       fill: piePalette[idx % piePalette.length],
     }));
+  }, [data]);
+
+  const valueAdditionByLab = useMemo(() => {
+    if (!data) return [];
+    const grouped = data.valueAdditionEquipment.reduce((acc, item) => {
+      const key = item.labName || "Other";
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(item);
+      return acc;
+    }, {} as Record<string, ValueAdditionEquipment[]>);
+
+    return Object.entries(grouped).map(([labName, equipment]) => ({
+      labName,
+      equipment: equipment.sort(
+        (a, b) => (a.displayOrder ?? Number.MAX_SAFE_INTEGER) - (b.displayOrder ?? Number.MAX_SAFE_INTEGER)
+      ),
+    }));
+  }, [data]);
+
+  const valueAdditionUnits = useMemo(() => {
+    if (!data) return 0;
+    return data.valueAdditionEquipment.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  }, [data]);
+
+  const valueAdditionTypeDistribution = useMemo(() => {
+    if (!data) return [];
+    const grouped = data.valueAdditionEquipment.reduce((acc, item) => {
+      const key = item.type || "Other";
+      acc[key] = (acc[key] || 0) + (item.quantity || 1);
+      return acc;
+    }, {} as Record<string, number>);
+    return Object.entries(grouped)
+      .map(([type, count], idx) => ({
+        type,
+        count,
+        fill: piePalette[idx % piePalette.length],
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [data]);
+
+  const valueAdditionLabStats = useMemo(() => {
+    if (!data) return [];
+    return valueAdditionByLab.map(({ labName, equipment }) => ({
+      labName,
+      items: equipment.length,
+      units: equipment.reduce((sum, item) => sum + (item.quantity || 1), 0),
+      room: equipment[0]?.roomNumber || "-",
+      block: equipment[0]?.blockName || "-",
+    }));
+  }, [data, valueAdditionByLab]);
+
+  const facilityTypeBreakdown = useMemo(() => {
+    if (!data) return [];
+    const counts = data.facilities.reduce((acc, facility) => {
+      const key = facility.facilityType || "Other";
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(counts)
+      .map(([type, count], idx) => ({
+        type,
+        count,
+        fill: piePalette[idx % piePalette.length],
+      }))
+      .sort((a, b) => b.count - a.count);
   }, [data]);
 
   if (loading) {
@@ -211,12 +297,20 @@ export function MNSUAMPage() {
         className="space-y-12"
       >
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <motion.div variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}>
-            <Card className="relative overflow-hidden border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Building2 className="w-24 h-24 text-primary" />
-              </div>
+        <div className="rounded-2xl border border-border/60 bg-card/70 p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+            <div className="space-y-1">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Department snapshot</p>
+              <h2 className="text-2xl font-bold text-foreground">Estate, Agronomy & Labs</h2>
+            </div>
+            <Badge variant="outline" className="text-foreground border-border/60">
+              <MapPin className="w-4 h-4 mr-2" />
+              {data.department.location || "MNSUAM"}
+            </Badge>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <Card className="border border-border/60 shadow-none">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-2 text-primary font-medium">
                   <Building2 className="w-4 h-4" />
@@ -226,13 +320,8 @@ export function MNSUAMPage() {
                 <p className="text-sm text-muted-foreground mt-1">Research & training spaces</p>
               </CardContent>
             </Card>
-          </motion.div>
-          
-          <motion.div variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}>
-            <Card className="relative overflow-hidden border-l-4 border-l-secondary shadow-sm hover:shadow-md transition-shadow">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Users className="w-24 h-24 text-secondary" />
-              </div>
+
+            <Card className="border border-border/60 shadow-none">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-2 text-secondary font-medium">
                   <Users className="w-4 h-4" />
@@ -242,13 +331,8 @@ export function MNSUAMPage() {
                 <p className="text-sm text-muted-foreground mt-1">Person capacity with backup power</p>
               </CardContent>
             </Card>
-          </motion.div>
 
-          <motion.div variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}>
-            <Card className="relative overflow-hidden border-l-4 border-l-primary shadow-sm hover:shadow-md transition-shadow">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Leaf className="w-24 h-24 text-primary" />
-              </div>
+            <Card className="border border-border/60 shadow-none">
               <CardContent className="p-6">
                 <div className="flex items-center gap-2 mb-2 text-primary font-medium">
                   <Leaf className="w-4 h-4" />
@@ -262,216 +346,557 @@ export function MNSUAMPage() {
                 </p>
               </CardContent>
             </Card>
-          </motion.div>
+
+            <Card className="border border-border/60 shadow-none">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-2 text-secondary font-medium">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Value Addition Lab</span>
+                </div>
+                <div className="text-4xl font-bold text-foreground">
+                  {data.stats.valueAdditionSummary?.totalEquipment ?? data.valueAdditionEquipment.length}
+                </div>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {valueAdditionByLab.length} labs | {valueAdditionUnits} units
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mt-4">
+            {facilityTypeBreakdown.map((item) => (
+              <Badge
+                key={item.type}
+                variant="secondary"
+                className="flex items-center gap-2 border-border/60 text-foreground"
+              >
+                <span
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: item.fill }}
+                />
+                {item.type}
+                <span className="text-xs text-muted-foreground">({item.count})</span>
+              </Badge>
+            ))}
+          </div>
         </div>
 
-        {/* Charts Section */}
-        <motion.div
-          variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value)}
+          defaultValue="estate"
+          className="w-full"
         >
-          <Card className="shadow-sm border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <BarChart3 className="w-5 h-5 text-primary" />
-                Capacity by Block
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={facilityDistribution} margin={{ top: 10, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis 
-                    dataKey="blockName" 
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} 
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis 
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} 
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip 
-                    contentStyle={{ 
-                      borderRadius: "8px", 
-                      border: "1px solid hsl(var(--border))",
-                      backgroundColor: "hsl(var(--card))",
-                      color: "hsl(var(--foreground))"
-                    }} 
-                  />
-                  <Bar dataKey="capacity" radius={[4, 4, 0, 0]} fill="hsl(var(--primary))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 mb-8 rounded-2xl border border-border/60 bg-card/70 p-1">
+            <TabsTrigger
+              value="estate"
+              className="flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors border border-transparent data-[state=active]:border-border/70 data-[state=active]:bg-background"
+            >
+              <Building2 className="w-4 h-4" />
+              Estate Data
+            </TabsTrigger>
+            <TabsTrigger
+              value="agronomy"
+              className="flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors border border-transparent data-[state=active]:border-border/70 data-[state=active]:bg-background"
+            >
+              <Leaf className="w-4 h-4" />
+              Agronomy Department
+            </TabsTrigger>
+            <TabsTrigger
+              value="value-addition"
+              className="flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors border border-transparent data-[state=active]:border-border/70 data-[state=active]:bg-background"
+            >
+              <Sparkles className="w-4 h-4" />
+              Value Addition & Food Analysis Lab
+            </TabsTrigger>
+          </TabsList>
 
-          <Card className="shadow-sm pb-5 border-border/50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Thermometer className="w-5 h-5 text-secondary" />
-                Equipment Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={equipmentDistribution}
-                    dataKey="count"
-                    nameKey="type"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={2}
-                  >
-                    {equipmentDistribution.map((item, idx) => (
-                      <Cell key={item.type} fill={item.fill} strokeWidth={0} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      borderRadius: "8px", 
-                      border: "1px solid hsl(var(--border))",
-                      backgroundColor: "hsl(var(--card))",
-                      color: "hsl(var(--foreground))"
-                    }} 
-                  />
-                  <Legend 
-                    verticalAlign="bottom" 
-                    height={36}
-                    iconType="circle"
-                    formatter={(value) => <span className="text-sm text-muted-foreground ml-1">{value}</span>}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </motion.div>
+          <TabsContent value="estate" forceMount className="space-y-6 data-[state=inactive]:hidden">
+            <motion.section
+              variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
+              className="space-y-6"
+            >
+              <div className="grid gap-6 lg:grid-cols-2">
+                <Card className="shadow-sm border border-border/60 bg-background">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <BarChart3 className="w-5 h-5 text-primary" />
+                      Capacity by Block
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer key={activeTab} width="100%" height={280}>
+                      <BarChart data={facilityDistribution} margin={{ top: 10, right: 16, left: 8, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                        <XAxis
+                          dataKey="blockName"
+                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <YAxis
+                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                          axisLine={false}
+                          tickLine={false}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            borderRadius: "8px",
+                            border: "1px solid hsl(var(--border))",
+                            backgroundColor: "hsl(var(--card))",
+                            color: "hsl(var(--foreground))",
+                          }}
+                        />
+                        <Bar dataKey="capacity" radius={[6, 6, 0, 0]} fill="hsl(var(--primary))" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
 
-        {/* Facilities Grid */}
-        <motion.section
-          variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
-          className="space-y-6"
-        >
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <h3 className="text-2xl font-bold tracking-tight">Estate Facilities</h3>
-              <p className="text-muted-foreground">Comprehensive infrastructure for research and academic activities</p>
-            </div>
-            <Button variant="outline" size="sm" className="hidden sm:flex">
-              <Calendar className="w-4 h-4 mr-2" />
-              Check Availability
-            </Button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {data.facilities.map((facility, idx) => {
-              const Icon = getFacilityIcon(facility.facilityType, facility.name);
-              return (
-                <motion.div
-                  key={facility.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.04 }}
-                >
-                  <Card className="h-full hover:shadow-md transition-all duration-300 border-border/50 group">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="p-3 rounded-lg bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
-                          <Icon className="w-6 h-6" />
-                        </div>
-                        <Badge variant="secondary" className="font-normal">
-                          {facility.type}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                          {facility.blockName}
-                        </p>
-                        <h4 className="text-lg font-semibold text-foreground line-clamp-2 min-h-[3.5rem]">
-                          {facility.name}
-                        </h4>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2 border-t border-border/50">
-                          <div className="flex items-center gap-1.5">
-                            <Users className="w-4 h-4" />
-                            <span>{facility.capacityPersons || "N/A"} Capacity</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Building2 className="w-4 h-4" />
-                            <span>{facility.facilityType}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              );
-            })}
-          </div>
-          
-          {data.notes && (
-            <div className="bg-muted/30 border border-border rounded-lg p-4 flex gap-3 items-start">
-              <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-              <p className="text-sm text-muted-foreground">{data.notes}</p>
-            </div>
-          )}
-        </motion.section>
+                <Card className="shadow-sm border border-border/60 bg-background">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Presentation className="w-5 h-5 text-secondary" />
+                      Space Mix by Facility Type
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                {facilityTypeBreakdown.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No facility type data available.</p>
+                ) : (
+                  <ResponsiveContainer key={activeTab} width="100%" height={280}>
+                    <PieChart>
+                          <Pie
+                            data={facilityTypeBreakdown}
+                            dataKey="count"
+                            nameKey="type"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={58}
+                            outerRadius={96}
+                            paddingAngle={2}
+                          >
+                            {facilityTypeBreakdown.map((item) => (
+                              <Cell key={item.type} fill={item.fill} strokeWidth={0} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              borderRadius: "8px",
+                              border: "1px solid hsl(var(--border))",
+                              backgroundColor: "hsl(var(--card))",
+                              color: "hsl(var(--foreground))",
+                            }}
+                          />
+                          <Legend
+                            verticalAlign="bottom"
+                            height={36}
+                            iconType="circle"
+                            formatter={(value) => <span className="text-sm text-muted-foreground ml-1">{value}</span>}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
 
-        {/* Equipment Table */}
-        <motion.section
-          variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
-          className="space-y-6"
-        >
-          <div className="space-y-1">
-            <h3 className="text-2xl font-bold tracking-tight">Agronomy Equipment</h3>
-            <p className="text-muted-foreground">Specialized tools and machinery for agricultural research</p>
-          </div>
-
-          <Card className="overflow-hidden border-border/50 shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted/50 text-muted-foreground font-medium">
-                  <tr>
-                    <th className="py-4 px-6">Equipment Name</th>
-                    <th className="py-4 px-6">Type / Category</th>
-                    <th className="py-4 px-6 text-center">Quantity</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50">
-                  {data.agronomyEquipment.map((item, idx) => (
-                    <tr
-                      key={item.id}
-                      className="hover:bg-muted/30 transition-colors"
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-bold tracking-tight">Estate Facilities</h3>
+                  <p className="text-muted-foreground">Comprehensive infrastructure for research and academic activities</p>
+                </div>
+                <Button variant="outline" size="sm" className="hidden sm:flex rounded-full border-border/60 bg-background/80 backdrop-blur">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Check Availability
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {data.facilities.map((facility, idx) => {
+                  const Icon = getFacilityIcon(facility.facilityType, facility.name);
+                  return (
+                    <motion.div
+                      key={facility.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.04 }}
                     >
-                      <td className="py-4 px-6 font-medium text-foreground">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
-                            <Microscope className="w-4 h-4" />
+                      <Card className="h-full border border-border/60 bg-background shadow-sm hover:shadow-md transition-colors duration-200 group">
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="p-3 rounded-lg bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300">
+                              <Icon className="w-6 h-6" />
+                            </div>
+                            <Badge variant="secondary" className="font-normal bg-secondary/10 border-border/60 text-foreground">
+                              {facility.type || facility.facilityType || "Estate"}
+                            </Badge>
                           </div>
-                          {item.name}
-                        </div>
-                      </td>
-                      <td className="py-4 px-6 text-muted-foreground">
-                        <Badge variant="outline" className="font-normal">
-                          {item.type}
-                        </Badge>
-                      </td>
-                      <td className="py-4 px-6 text-center">
-                        <span className="inline-flex items-center justify-center min-w-[2rem] h-8 rounded-full bg-secondary/10 text-secondary-foreground font-medium px-2">
-                          {item.quantity}
+                          
+                          <div className="space-y-2">
+                            <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                              {facility.blockName}
+                            </p>
+                            <h4 className="text-lg font-semibold text-foreground line-clamp-2 min-h-[3.5rem]">
+                              {facility.name}
+                            </h4>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2 border-t border-border/50">
+                              <div className="flex items-center gap-1.5">
+                                <Users className="w-4 h-4" />
+                                <span>{facility.capacityLabel ?? `${facility.capacityPersons ?? "N/A"} Capacity`}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Building2 className="w-4 h-4" />
+                                <span>{facility.facilityType}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+              
+              {data.notes && (
+                <div className="bg-gradient-to-r from-primary/5 to-secondary/10 border border-dashed border-border rounded-xl p-4 flex gap-3 items-start shadow-inner">
+                  <Sparkles className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <p className="text-sm text-muted-foreground">{data.notes}</p>
+                </div>
+              )}
+            </motion.section>
+          </TabsContent>
+
+          <TabsContent value="agronomy" forceMount className="space-y-6 data-[state=inactive]:hidden">
+            <motion.section
+              variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
+              className="space-y-6"
+            >
+              <Card className="shadow-sm pb-5 border border-border/60 bg-background">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Thermometer className="w-5 h-5 text-secondary" />
+                    Equipment Distribution
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {equipmentDistribution.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No equipment data available.</p>
+                  ) : (
+                    <ResponsiveContainer key={activeTab} width="100%" height={280}>
+                      <PieChart>
+                        <Pie
+                          data={equipmentDistribution}
+                          dataKey="count"
+                          nameKey="type"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={2}
+                        >
+                          {equipmentDistribution.map((item, idx) => (
+                            <Cell key={item.type} fill={item.fill} strokeWidth={0} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{
+                            borderRadius: "8px",
+                            border: "1px solid hsl(var(--border))",
+                            backgroundColor: "hsl(var(--card))",
+                            color: "hsl(var(--foreground))",
+                          }}
+                        />
+                        <Legend
+                          verticalAlign="bottom"
+                          height={36}
+                          iconType="circle"
+                          formatter={(value) => <span className="text-sm text-muted-foreground ml-1">{value}</span>}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
+                </CardContent>
+              </Card>
+
+              <div className="space-y-1">
+                <h3 className="text-2xl font-bold tracking-tight">Agronomy Equipment</h3>
+                <p className="text-muted-foreground">Specialized tools and machinery for agricultural research</p>
+              </div>
+
+              <Card className="overflow-hidden border border-border/60 shadow-sm bg-background">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-muted/50 text-muted-foreground font-medium">
+                      <tr>
+                        <th className="py-4 px-6">Equipment Name</th>
+                        <th className="py-4 px-6">Type / Category</th>
+                        <th className="py-4 px-6 text-center">Quantity</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/50">
+                      {data.agronomyEquipment.length === 0 && (
+                        <tr>
+                          <td colSpan={3} className="py-4 px-6 text-sm text-muted-foreground text-center">
+                            No agronomy equipment data available.
+                          </td>
+                        </tr>
+                      )}
+                      {data.agronomyEquipment.map((item, idx) => (
+                        <tr
+                          key={item.id}
+                          className="hover:bg-muted/30 transition-colors"
+                        >
+                          <td className="py-4 px-6 font-medium text-foreground">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+                                <Microscope className="w-4 h-4" />
+                              </div>
+                              {item.name}
+                            </div>
+                          </td>
+                          <td className="py-4 px-6 text-muted-foreground">
+                            <Badge variant="outline" className="font-normal">
+                              {item.type}
+                            </Badge>
+                          </td>
+                          <td className="py-4 px-6 text-center">
+                            <span className="inline-flex items-center justify-center min-w-[2rem] h-8 rounded-full bg-secondary/10 text-secondary-foreground font-medium px-2">
+                              {item.quantity}
+                            </span>
+                          </td>
+                          
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </motion.section>
+          </TabsContent>
+
+          <TabsContent value="value-addition" forceMount className="space-y-6 data-[state=inactive]:hidden">
+            <motion.section
+              variants={{ hidden: { y: 20, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
+              className="space-y-6"
+            >
+              <div className="flex flex-col gap-3">
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-bold tracking-tight">Value Addition & Food Analysis Lab</h3>
+                  <p className="text-muted-foreground">
+                    Snapshot of both Value Addition and Nutrient Analytical labs with functional status, focal contact, and room coverage.
+                  </p>
+                </div>
+                <Card className="border border-border/60 bg-white">
+                  <CardContent className="p-4 md:p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground uppercase tracking-[0.18em]">Focal Contact</p>
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        <span className="font-semibold text-foreground">
+                          {data.valueAdditionEquipment[0]?.focalPerson || "Dr. Shabbir Ahmad"}
                         </span>
-                      </td>
-                      
-                    </tr>
+                      </div>
+                      <p className="text-sm text-muted-foreground">Email: Shabbir.ahmad@mnsuam.edu.pk</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full md:w-auto">
+                      <div className="rounded-lg border border-border/60 p-3">
+                        <p className="text-xs text-muted-foreground">Equipment Lines</p>
+                        <p className="text-xl font-semibold text-foreground">{data.valueAdditionEquipment.length}</p>
+                      </div>
+                      <div className="rounded-lg border border-border/60 p-3">
+                        <p className="text-xs text-muted-foreground">Total Units</p>
+                        <p className="text-xl font-semibold text-foreground">{valueAdditionUnits}</p>
+                      </div>
+                      <div className="rounded-lg border border-border/60 p-3">
+                        <p className="text-xs text-muted-foreground">Labs</p>
+                        <p className="text-xl font-semibold text-foreground">{valueAdditionByLab.length}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card className="border border-border/60 bg-white">
+                <CardHeader>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-lg">Lab Coverage Overview</CardTitle>
+                      <p className="text-sm text-muted-foreground">Room locations with items and unit counts per lab.</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">{valueAdditionUnits} total units</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {valueAdditionLabStats.map((lab) => (
+                    <div key={lab.labName} className="rounded-xl border border-border/60 p-3">
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-foreground">{lab.labName}</p>
+                        <Badge variant="secondary" className="text-[11px]">{lab.items} items</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Room {lab.room} • {lab.block}</p>
+                      <div className="mt-3 flex items-center gap-3 text-sm text-muted-foreground">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-primary">
+                          <Sparkles className="w-3 h-3" />
+                          {lab.units} units
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-1">
+                          {lab.items} lines
+                        </span>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </motion.section>
+                </CardContent>
+              </Card>
+
+              <div className="grid gap-6 lg:grid-cols-2">
+                <Card className="border border-border/60 bg-white">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Equipment Distribution by Type</CardTitle>
+                    <p className="text-sm text-muted-foreground">Unit share across key Value Addition equipment types.</p>
+                  </CardHeader>
+                  <CardContent>
+                    {valueAdditionTypeDistribution.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">No value addition equipment data available.</p>
+                    ) : (
+                      <ResponsiveContainer key={`${activeTab}-val-type`} width="100%" height={280}>
+                        <PieChart>
+                          <Pie
+                            data={valueAdditionTypeDistribution}
+                            dataKey="count"
+                            nameKey="type"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={100}
+                            paddingAngle={2}
+                          >
+                            {valueAdditionTypeDistribution.map((item) => (
+                              <Cell key={item.type} fill={item.fill} strokeWidth={0} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              borderRadius: "8px",
+                              border: "1px solid hsl(var(--border))",
+                              backgroundColor: "hsl(var(--card))",
+                              color: "hsl(var(--foreground))",
+                            }}
+                          />
+                          <Legend
+                            verticalAlign="bottom"
+                            height={36}
+                            iconType="circle"
+                            formatter={(value) => <span className="text-sm text-muted-foreground ml-1">{value}</span>}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card className="border border-border/60 bg-white">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Items & Units by Lab</CardTitle>
+                    <p className="text-sm text-muted-foreground">Comparative view of equipment lines and total units.</p>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer key={`${activeTab}-val-lab`} width="100%" height={280}>
+                      <BarChart data={valueAdditionLabStats} layout="vertical" margin={{ left: 16, right: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis type="number" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
+                        <YAxis
+                          type="category"
+                          dataKey="labName"
+                          width={140}
+                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            borderRadius: "8px",
+                            border: "1px solid hsl(var(--border))",
+                            backgroundColor: "hsl(var(--card))",
+                            color: "hsl(var(--foreground))",
+                          }}
+                          formatter={(value, name) => [value, name === "units" ? "Units" : "Items"]}
+                        />
+                        <Legend />
+                        <Bar dataKey="items" name="Items" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="units" name="Units" fill="hsl(var(--secondary))" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="space-y-6">
+                {valueAdditionByLab.length === 0 && (
+                  <Card className="border border-border/60 bg-background shadow-sm">
+                    <CardContent className="p-6 text-sm text-muted-foreground">No value addition equipment data available.</CardContent>
+                  </Card>
+                )}
+                    {valueAdditionByLab.map(({ labName, equipment }) => {
+                      const firstItem = equipment[0];
+                      const totalUnits = equipment.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                      return (
+                        <Card key={labName} className="shadow-sm border border-border/60 bg-white">
+                          <CardHeader>
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <CardTitle className="text-lg">{labName}</CardTitle>
+                                <p className="text-sm text-muted-foreground">
+                                  Room # {firstItem?.roomNumber} | {firstItem?.blockName}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-xs">
+                                  {equipment.length} items
+                                </Badge>
+                                <Badge variant="secondary" className="text-xs">
+                                  {totalUnits} units
+                                </Badge>
+                              </div>
+                            </div>
+                          </CardHeader>
+                      <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {equipment.map((item, idx) => (
+                           <Card key={item.id} className="border border-border/60 bg-white hover:border-primary/60 hover:shadow-md transition-colors">
+                            <CardContent className="p-4 space-y-2">
+                              <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-xs font-bold text-primary">
+                                  {item.displayOrder ?? idx + 1}
+                                </div>
+                                <div className="space-y-1 flex-1">
+                                  <p className="font-semibold text-sm">{item.name}</p>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <Badge variant="outline" className="text-[11px]">
+                                      {item.type}
+                                    </Badge>
+                                    {item.quantity > 1 && (
+                                      <Badge variant="secondary" className="text-[11px]">
+                                        Qty: {item.quantity}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <Badge
+                                    variant={(item.status || "AVAILABLE") === "AVAILABLE" ? "default" : "secondary"}
+                                    className={(item.status || "AVAILABLE") === "AVAILABLE" ? "bg-green-500 text-white text-[11px]" : "text-[11px]"}
+                                  >
+                                    {(item.status || "AVAILABLE") === "AVAILABLE" ? "Functional" : item.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </motion.section>
+          </TabsContent>
+        </Tabs>
 
         {/* Contact Section */}
         <motion.section
@@ -483,7 +908,7 @@ export function MNSUAMPage() {
             {data.focalPersons.map((person, idx) => (
               <Card
                 key={person.email}
-                className="overflow-hidden border-border/50 hover:border-primary/50 transition-colors"
+                className="overflow-hidden border border-border/60 bg-background hover:border-primary/60 hover:shadow-md transition-colors"
               >
                 <div className="p-6 flex flex-col md:flex-row gap-6 items-start md:items-center">
                   <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -492,7 +917,7 @@ export function MNSUAMPage() {
                   <div className="space-y-1 flex-1">
                     <div className="flex items-center gap-2">
                       <Badge variant={idx === 0 ? "default" : "secondary"}>
-                        {idx === 0 ? "University Farms" : "Agronomy Department"}
+                        {person.role}
                       </Badge>
                     </div>
                     <h4 className="text-xl font-bold">{person.name}</h4>

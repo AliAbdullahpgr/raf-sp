@@ -7,10 +7,13 @@ export async function GET() {
       where: { id: "mnsuam" },
       include: {
         mnsuamEstateFacilities: {
-          orderBy: { blockName: "asc" },
+          orderBy: [{ displayOrder: "asc" }, { blockName: "asc" }],
         },
         agronomyLabEquipment: {
-          orderBy: { name: "asc" },
+          orderBy: [{ displayOrder: "asc" }, { name: "asc" }],
+        },
+        valueAdditionLabEquipment: {
+          orderBy: [{ displayOrder: "asc" }, { labName: "asc" }],
         },
       },
     });
@@ -24,6 +27,7 @@ export async function GET() {
 
     const facilities = department.mnsuamEstateFacilities;
     const equipment = department.agronomyLabEquipment;
+    const valueAdditionEquipment = department.valueAdditionLabEquipment;
 
     const totalCapacity = facilities.reduce(
       (sum, item) => sum + (item.capacityPersons || 0),
@@ -68,9 +72,13 @@ export async function GET() {
         designation: department.designation,
         phone: department.phone,
         email: department.email,
+        mnsuamEstateFacilities: facilities,
+        agronomyLabEquipment: equipment,
+        valueAdditionLabEquipment: valueAdditionEquipment,
       },
       facilities,
       agronomyEquipment: equipment,
+      valueAdditionEquipment,
       stats: {
         totalFacilities: facilities.length,
         totalCapacity,
@@ -79,6 +87,10 @@ export async function GET() {
           totalTypes: equipment.length,
           totalUnits,
           equipmentByType,
+        },
+        valueAdditionSummary: {
+          totalEquipment: valueAdditionEquipment.length,
+          totalUnits: valueAdditionEquipment.reduce((sum, item) => sum + (item.quantity || 0), 0),
         },
       },
       focalPersons: [
@@ -91,6 +103,11 @@ export async function GET() {
           name: "Dr. Nabeel Ahmad Ikram",
           role: "Agronomy Department",
           email: "nabeel.ahmad@mnsuam.edu.pk",
+        },
+        {
+          name: "Dr. Shabbir Ahmad",
+          role: "Value Addition and Food Analysis Lab",
+          email: "Shabbir.ahmad@mnsuam.edu.pk",
         },
       ],
       notes:

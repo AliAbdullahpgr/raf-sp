@@ -118,6 +118,14 @@ export async function getDepartmentEquipment(
         });
         break;
 
+      case "ValueAdditionLabEquipment":
+        // @ts-ignore - Prisma client type issue
+        equipment = await prisma.valueAdditionLabEquipment.findMany({
+          where: { departmentId },
+          orderBy: { createdAt: "desc" },
+        });
+        break;
+
       default:
         return {
           success: false,

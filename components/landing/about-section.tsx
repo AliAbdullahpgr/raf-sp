@@ -193,7 +193,7 @@ export function AboutSection() {
                   {[...partners, ...partners, ...partners].map((partner, index) => (
                     <div
                       key={`row1-${index}`}
-                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center grayscale opacity-70 hover:grayscale-0 hover:opacity-100 hover:scale-110 transition-all duration-500 cursor-pointer"
+                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center transition-transform duration-500 cursor-pointer hover:scale-105"
                     >
                       <Image
                         src={partner.src}
@@ -220,7 +220,7 @@ export function AboutSection() {
                   {[...partners, ...partners, ...partners].map((partner, index) => (
                     <div
                       key={`row1-dup-${index}`}
-                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center grayscale opacity-70 hover:grayscale-0 hover:opacity-100 hover:scale-110 transition-all duration-500 cursor-pointer"
+                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center transition-transform duration-500 cursor-pointer hover:scale-105"
                     >
                       <Image
                         src={partner.src}
@@ -251,7 +251,7 @@ export function AboutSection() {
                   {[...partners, ...partners, ...partners].reverse().map((partner, index) => (
                     <div
                       key={`row2-${index}`}
-                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center grayscale opacity-70 hover:grayscale-0 hover:opacity-100 hover:scale-110 transition-all duration-500 cursor-pointer"
+                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center transition-transform duration-500 cursor-pointer hover:scale-105"
                     >
                       <Image
                         src={partner.src}
@@ -278,7 +278,7 @@ export function AboutSection() {
                   {[...partners, ...partners, ...partners].reverse().map((partner, index) => (
                     <div
                       key={`row2-dup-${index}`}
-                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center grayscale opacity-70 hover:grayscale-0 hover:opacity-100 hover:scale-110 transition-all duration-500 cursor-pointer"
+                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center transition-transform duration-500 cursor-pointer hover:scale-105"
                     >
                       <Image
                         src={partner.src}

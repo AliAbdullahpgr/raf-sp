@@ -1,136 +1,240 @@
-import { PrismaClient } from "@prisma/client";
-import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
+import { Pool } from "pg";
 
-// Load environment variables
 dotenv.config();
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
-async function main() {
-  const departmentId = "ento";
-  const departmentName = "Entomological Research Sub Station";
+type EntoRow = {
+  itemNo: number;
+  name: string;
+  quantityLabel: string | null;
+  dateReceived: Date | null;
+  lastVerification: Date | null;
+  lastVerificationLabel: string | null;
+  registerLabel: string;
+  sourceLine: string;
+};
 
-  console.log(`Seeding ${departmentName}...`);
+const parseDate = (value?: string | null): Date | null => {
+  if (!value) return null;
+  const cleaned = value.replace(/[^0-9.]/g, "");
+  const [day, month, year] = cleaned.split(".").filter(Boolean);
+  if (!day || !month || !year) return null;
+  const parsed = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
 
-  // 1. Create or Update Department
-  const department = await prisma.department.upsert({
-    where: { id: departmentId },
-    update: {
-      name: departmentName,
-      location: "Multan, Punjab",
-      description: "Advanced research on insect pests, beneficial insects, and integrated pest management strategies for sustainable agriculture.",
-      focalPerson: "Dr. Asifa Hameed",
-      designation: "Principal Scientist",
-      phone: "+92-61-9210075",
-      email: "asifa_hameed_sheikh@yahoo.com",
-    },
-    create: {
-      id: departmentId,
-      name: departmentName,
-      location: "Multan, Punjab",
-      description: "Advanced research on insect pests, beneficial insects, and integrated pest management strategies for sustainable agriculture.",
-      focalPerson: "Dr. Asifa Hameed",
-      designation: "Principal Scientist",
-      phone: "+92-61-9210075",
-      email: "asifa_hameed_sheikh@yahoo.com",
-    },
-  });
+const ensureTables = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ento_profile (
+      id SERIAL PRIMARY KEY,
+      department_id TEXT UNIQUE NOT NULL,
+      department_name TEXT NOT NULL,
+      location TEXT,
+      focal_person TEXT,
+      designation TEXT,
+      email TEXT,
+      officers INTEGER,
+      officials INTEGER,
+      land_acres NUMERIC(10,2),
+      rooms INTEGER,
+      register_title TEXT,
+      register_note TEXT,
+      compiled_on DATE,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
 
-  console.log("Department upserted:", department.name);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS ento_inventory_items (
+      id SERIAL PRIMARY KEY,
+      item_no INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      quantity_label TEXT,
+      date_received DATE,
+      last_verified DATE,
+      last_verification_label TEXT,
+      register_label TEXT,
+      source_line TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW(),
+      updated_at TIMESTAMPTZ DEFAULT NOW()
+    );
+  `);
 
-  // 2. Clear existing data for this department
-  await prisma.eRSSStockRegister.deleteMany({
-    where: { departmentId: department.id },
-  });
-  console.log("Cleared existing ERSSStockRegister data.");
+  await pool.query(`CREATE INDEX IF NOT EXISTS ento_inventory_item_no_idx ON ento_inventory_items (item_no);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS ento_inventory_date_received_idx ON ento_inventory_items (date_received);`);
+};
 
-  // 3. Parse and Insert Data
-  const dataFilePath = path.join(process.cwd(), "lib", "data", "ento.txt");
-  const fileContent = fs.readFileSync(dataFilePath, "utf-8");
-  const lines = fileContent.split("\n");
+const seedProfile = async () => {
+  const profile = {
+    department_id: "ento",
+    department_name: "Entomological Research Sub Station Multan",
+    location: "Multan, Punjab",
+    focal_person: "Dr. Asifa Hameed",
+    designation: "Principal Scientist",
+    email: "asifa_hameed_sheikh@yahoo.com",
+    officers: 3,
+    officials: 2,
+    land_acres: 3.5,
+    rooms: 5,
+    register_title: "List of Non-Consumable Items - Stock Register (2) - CLCV Project",
+    register_note:
+      "Exact entries from ERSS Multan stock register including continuation notes for Register (3), DSR/auction remarks, and verification history.",
+    compiled_on: parseDate("25.08.2025"),
+  };
 
-  const itemsToCreate = [];
+  await pool.query(
+    `
+    INSERT INTO ento_profile (
+      department_id, department_name, location, focal_person, designation, email,
+      officers, officials, land_acres, rooms, register_title, register_note, compiled_on, updated_at
+    )
+    VALUES (
+      $1, $2, $3, $4, $5, $6,
+      $7, $8, $9, $10, $11, $12, $13, NOW()
+    )
+    ON CONFLICT (department_id)
+    DO UPDATE SET
+      department_name = EXCLUDED.department_name,
+      location = EXCLUDED.location,
+      focal_person = EXCLUDED.focal_person,
+      designation = EXCLUDED.designation,
+      email = EXCLUDED.email,
+      officers = EXCLUDED.officers,
+      officials = EXCLUDED.officials,
+      land_acres = EXCLUDED.land_acres,
+      rooms = EXCLUDED.rooms,
+      register_title = EXCLUDED.register_title,
+      register_note = EXCLUDED.register_note,
+      compiled_on = EXCLUDED.compiled_on,
+      updated_at = NOW();
+  `,
+    [
+      profile.department_id,
+      profile.department_name,
+      profile.location,
+      profile.focal_person,
+      profile.designation,
+      profile.email,
+      profile.officers,
+      profile.officials,
+      profile.land_acres,
+      profile.rooms,
+      profile.register_title,
+      profile.register_note,
+      profile.compiled_on,
+    ]
+  );
+};
+
+const parseItems = (raw: string): EntoRow[] => {
+  const lines = raw.split(/\r?\n/);
+  const rows: EntoRow[] = [];
+  const registerLabel = "Stock Register (2) - CLCV Project";
 
   for (const line of lines) {
-    const trimmedLine = line.trim();
-    if (!trimmedLine || trimmedLine.startsWith("#") || trimmedLine.startsWith("LIST OF")) {
-      continue;
-    }
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("|")) continue;
+    if (trimmed.includes("---") || trimmed.toLowerCase().includes("name")) continue;
 
-    // Split by tab
-    const parts = trimmedLine.split(/\t+/);
+    const cells = trimmed.split("|").map((cell) => cell.trim());
+    if (cells.length < 6) continue;
 
-    if (parts.length < 2) {
-        continue;
-    }
+    const itemNo = Number(cells[1]);
+    if (!Number.isFinite(itemNo)) continue;
 
-    // Adjust index based on columns
-    // 0: # (Index)
-    // 1: Name
-    // 2: Page #
-    // 3: Qty
-    // 4: Date received
-    // 5: Last verification
+    const name = cells[2];
+    const quantityLabel = cells[3] || null;
+    const dateReceived = parseDate(cells[4]);
+    const lastVerificationLabel = cells[5] || null;
+    const lastVerification = parseDate(cells[5]);
 
-    const name = parts[1]?.trim();
-    if (!name) continue;
-
-    const pageNoStr = parts[2]?.trim();
-    const qtyStr = parts[3]?.trim();
-    const dateReceivedStr = parts[4]?.trim();
-    const lastVerificationStr = parts[5]?.trim();
-
-    const pageNo = parseInt(pageNoStr) || null;
-
-    let dateReceived: Date | null = null;
-    if (dateReceivedStr) {
-      const dateParts = dateReceivedStr.split(".");
-      if (dateParts.length === 3) {
-        // dd.mm.yyyy
-        const day = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
-        const year = parseInt(dateParts[2]);
-        const date = new Date(year, month, day);
-        if (!isNaN(date.getTime())) {
-          dateReceived = date;
-        }
-      }
-    }
-
-    itemsToCreate.push({
-      departmentId: department.id,
-      name: name,
-      type: "Non-Consumable Item", // Default type
-      registerPageNo: pageNo,
-      quantityStr: qtyStr,
-      dateReceived: dateReceived,
-      lastVerificationDate: lastVerificationStr,
-      currentStatusRemarks: "Available", // Default
+    rows.push({
+      itemNo,
+      name,
+      quantityLabel,
+      dateReceived,
+      lastVerification,
+      lastVerificationLabel,
+      registerLabel,
+      sourceLine: trimmed,
     });
   }
 
-  if (itemsToCreate.length > 0) {
-    console.log(`Inserting ${itemsToCreate.length} items...`);
-    await prisma.eRSSStockRegister.createMany({
-      data: itemsToCreate,
-    });
-    console.log(`Seeded ${itemsToCreate.length} items for ${departmentName}.`);
-  } else {
-    console.log("No items found to seed.");
+  return rows;
+};
+
+const seedItems = async () => {
+  const dataFilePath = path.join(process.cwd(), "lib", "data", "ento.txt");
+  const fileContent = fs.readFileSync(dataFilePath, "utf-8");
+  const items = parseItems(fileContent);
+
+  console.log(`Parsed ${items.length} entomology inventory rows.`);
+
+  await pool.query("BEGIN");
+  try {
+    await pool.query("TRUNCATE TABLE ento_inventory_items RESTART IDENTITY;");
+
+    for (const item of items) {
+      await pool.query(
+        `
+          INSERT INTO ento_inventory_items (
+            item_no,
+            name,
+            quantity_label,
+            date_received,
+            last_verified,
+            last_verification_label,
+            register_label,
+            source_line,
+            updated_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW());
+        `,
+        [
+          item.itemNo,
+          item.name,
+          item.quantityLabel,
+          item.dateReceived,
+          item.lastVerification,
+          item.lastVerificationLabel,
+          item.registerLabel,
+          item.sourceLine,
+        ]
+      );
+    }
+
+    await pool.query("COMMIT");
+    console.log(`Inserted ${items.length} entomology inventory records.`);
+  } catch (error) {
+    await pool.query("ROLLBACK");
+    throw error;
   }
+};
+
+async function main() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL is not set in the environment");
+  }
+
+  await ensureTables();
+  await seedProfile();
+  await seedItems();
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
+  .then(() => {
+    console.log("Entomology data seeded successfully.");
+    return pool.end();
   })
-  .finally(async () => {
-    await prisma.$disconnect();
+  .catch(async (error) => {
+    console.error("Failed to seed entomology data:", error);
+    await pool.end();
+    process.exit(1);
   });

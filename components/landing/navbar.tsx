@@ -49,11 +49,11 @@ export function Navbar() {
               />
             </div>
             <div className="ml-[-8px] flex flex-col">
-              <span className="text-primary font-bold text-xl leading-none tracking-tight">
-                RAF-SP
+              <span className="text-primary font-bold text-xl leading-none tracking-wide">
+                RAF
               </span>
               <span className="text-[10px] text-muted-foreground font-medium hidden sm:inline-block tracking-wide">
-                Research & Agriculture
+                South Punjab
               </span>
             </div>
           </Link>
