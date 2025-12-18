@@ -28,24 +28,7 @@ const navigation = [
     icon: LayoutDashboard,
     roles: ["ADMIN", "DEPT_HEAD"],
   },
-  {
-    name: "Organization Overview",
-    href: "/dashboard/overview",
-    icon: BarChart3,
-    roles: ["ADMIN", "DEPT_HEAD"],
-  },
-  {
-    name: "Equipment Inventory",
-    href: "/dashboard/inventory",
-    icon: Package,
-    roles: ["ADMIN", "DEPT_HEAD"],
-  },
-  {
-    name: "All Equipment",
-    href: "/dashboard/all-equipment",
-    icon: Eye,
-    roles: ["ADMIN", "DEPT_HEAD"],
-  },
+  
   {
     name: "Departments",
     href: "/dashboard/admin/departments",
