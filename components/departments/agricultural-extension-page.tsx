@@ -90,7 +90,7 @@ const itemVariants = {
     opacity: 1,
     y: 0,
     transition: {
-      type: "spring",
+      type: "spring" as const,
       stiffness: 100,
       damping: 10,
     },
@@ -372,7 +372,7 @@ export function AgriculturalExtensionPage() {
                     <motion.div
                       key={office.id}
                       whileHover={{ y: -4 }}
-                      transition={{ type: "spring", stiffness: 300 }}
+                      transition={{ type: "spring" as const, stiffness: 300 }}
                     >
                       <Card className="h-full border-0 shadow-sm hover:shadow-md transition-all bg-white dark:bg-gray-800">
                         <CardContent className="p-5">
