@@ -94,6 +94,7 @@ export function SoilWaterPage() {
       })
       .catch((error) => {
         console.error("Error fetching Soil & Water data:", error);
+        setData(null);
         setLoading(false);
       });
   }, []);

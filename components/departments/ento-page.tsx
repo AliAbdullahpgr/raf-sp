@@ -109,6 +109,7 @@ export function EntoPage() {
       .catch((error) => {
         console.error("Error fetching Ento data:", error);
         setError("Unable to load ERSS data.");
+        setData(null);
         setLoading(false);
       });
   }, []);

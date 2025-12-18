@@ -79,8 +79,7 @@ export function AgriEngPage() {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Error fetching Agri Engineering data:", error);
-        setLoading(false);
+        console.error("Error fetching Agri Engineering data:", error);        setData(null);        setLoading(false);
       });
   }, []);
 

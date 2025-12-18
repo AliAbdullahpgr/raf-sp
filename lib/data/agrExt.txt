@@ -1,0 +1,6 @@
+| Sr. No | Name of Institute / Station                        | Location                                                 | Area of State (Sq. Feet) | Remarks                                            | Status
+| ------ | -------------------------------------------------- | -------------------------------------------------------- | ------------------------ | -------------------------------------------------- | -----
+| 1      | Office of the Deputy Director Agriculture (Ext)    | Old Shujabad Road Agriculture Complex, Multan            | 288,585                  | Agriculture Department (Ext) Wing                  |  Utilized
+| 2      | SAO / EADA                                         | Dera Adda, Behind Telephone Exchange, Multan             | 13,056                   | Dismantled from Building Department                |  Un used
+| 3      | Office of the Assistant Director Agriculture (Ext) | Old Multan Road, Near Boys High School, Shujabad         | 89,100                   | Agriculture Department                             |  Utilized
+| 4      | Office of the Assistant Director Agriculture (Ext) | Shujabad Road, Near Virtual University, Jalalpur Pirwala | —                        | Temporarily adjusted in Health Department Building |  -

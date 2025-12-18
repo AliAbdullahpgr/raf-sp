@@ -82,6 +82,7 @@ export function MRIPage() {
       })
       .catch((error) => {
         console.error("Error fetching MRI data:", error);
+        setData(null);
         setLoading(false);
       });
   }, []);

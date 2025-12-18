@@ -137,6 +137,7 @@ export function RARIPage() {
       })
       .catch((error) => {
         console.error("Error fetching RARI data:", error);
+        setData(null);
         setLoading(false);
       });
   }, []);

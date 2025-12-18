@@ -80,6 +80,7 @@ export function FloriPage() {
       })
       .catch((error) => {
         console.error("Error fetching Flori data:", error);
+        setData(null);
         setLoading(false);
       });
   }, []);

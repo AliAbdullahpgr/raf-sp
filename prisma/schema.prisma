@@ -48,6 +48,8 @@ model Department {
   rariBahawalpurAssets            RARIBahawalpurAssets[]
   soilWaterTestingProject         SoilWaterTestingProject[]
   valueAdditionLabEquipment       ValueAdditionLabEquipment[]
+  raedcEquipment                  RAEDCEquipment[]
+  agriculturalExtensionWing       AgriculturalExtensionWing[]
   users                           User[]
 
   @@index([name])
@@ -353,6 +355,44 @@ model AgriEngineeringMultanRegionData {
   @@index([departmentId])
   @@index([status])
   @@map("Agri_Engineering_Multan_Region_Data")
+}
+
+model RAEDCEquipment {
+  id              String          @id @default(cuid())
+  name            String
+  type            String
+  imageUrl        String?
+  departmentId    String
+  facilityType    String?         // Training Hall, Computer Lab, Library, Auditorium, Demonstration Farm
+  capacity        Int?
+  location        String?         // Specific location within RAEDC
+  functionality   String?         // Operational, Under Maintenance, etc
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  status          EquipmentStatus @default(AVAILABLE)
+  department      Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([status])
+}
+
+model AgriculturalExtensionWing {
+  id              String          @id @default(cuid())
+  name            String
+  type            String
+  location        String
+  areaSquareFeet  Int?
+  remarks         String?
+  status          String          // Utilized, Unused, etc
+  functionality   String?
+  departmentId    String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  equipmentStatus EquipmentStatus @default(AVAILABLE)
+  department      Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([departmentId])
+  @@index([equipmentStatus])
 }
 
 enum Role {

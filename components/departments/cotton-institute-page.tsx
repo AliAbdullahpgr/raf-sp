@@ -83,6 +83,7 @@ export function CottonInstitutePage() {
       })
       .catch((error) => {
         console.error("Error fetching CRI data:", error);
+        setData(null);
         setLoading(false);
       });
   }, []);

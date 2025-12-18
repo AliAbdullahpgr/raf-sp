@@ -144,6 +144,7 @@ export function MNSUAMPage() {
       })
       .catch((error) => {
         console.error("Error fetching MNSUAM data:", error);
+        setData(null);
         setLoading(false);
       });
   }, []);

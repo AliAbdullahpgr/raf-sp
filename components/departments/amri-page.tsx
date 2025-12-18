@@ -81,6 +81,7 @@ export function AMRIPage() {
       })
       .catch((error) => {
         console.error("Error fetching AMRI data:", error);
+        setData(null);
         setLoading(false);
       });
   }, []);

@@ -84,8 +84,7 @@ export function PestPage() {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Error fetching pesticide QC lab data:", error);
-        setLoading(false);
+        console.error("Error fetching pesticide QC lab data:", error);        setData(null);        setLoading(false);
       });
   }, []);
 

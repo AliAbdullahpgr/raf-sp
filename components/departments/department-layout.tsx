@@ -4,9 +4,9 @@ import { Mail, Phone, User, Building2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface DepartmentLayoutProps {
-  name: string;
-  description: string;
-  image: string;
+  name?: string;
+  description?: string;
+  image?: string;
   focalPerson?: {
     name: string;
     designation: string;
@@ -17,8 +17,8 @@ interface DepartmentLayoutProps {
 }
 
 export function DepartmentLayout({
-  name,
-  description,
+  name = "Department Name",
+  description = "Department Description",
   image,
   focalPerson,
   children,
@@ -70,14 +70,20 @@ export function DepartmentLayout({
               )}
             </div>
 
-            <div className="relative h-64 md:h-80 rounded-xl overflow-hidden shadow-xl">
-              <Image
-                src={image}
-                alt={name}
-                fill
-                className="object-cover"
-                priority
-              />
+            <div className="relative h-64 md:h-80 rounded-xl overflow-hidden shadow-xl bg-black/10">
+              {image ? (
+                <Image
+                  src={image}
+                  alt={name}
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white/20">
+                  <Building2 className="w-24 h-24" />
+                </div>
+              )}
             </div>
           </div>
         </div>
