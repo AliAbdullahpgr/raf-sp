@@ -7,7 +7,7 @@ async function seedMRILogin() {
 
   await prisma.user.upsert({
     where: {
-      email: "abidhameedkhan@yahoo.com",
+      email: "muzamil.ijaz243@gmail.com",
     },
     update: {},
     create: {
