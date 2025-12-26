@@ -164,17 +164,17 @@ const allDepartments = [
     email: "akram@agrieng.gov.pk",
   },
   {
-    id: "adp",
-    name: "Adaptive Research Station",
-    location: "Multan, Punjab",
+    id: "arc",
+    name: "Adaptive Research Center",
+    location: "Govt. Agri. Station Multan",
     description:
-      "Conducting adaptive research trials, technology validation, and demonstration of improved agricultural practices for local conditions.",
+      "Monthly vacancy position for the Office of Assistant Director Agriculture (Farm), covering sanctioned, filled, and vacant posts.",
     image: "/images/adp.jpg.jpg",
     hasData: true,
-    focalPerson: "Dr. Saeed Ahmad",
-    designation: "Station Director",
-    phone: "+92-61-9210079",
-    email: "saeed.ahmad@adp.gov.pk",
+    focalPerson: "Office of Assistant Director Agriculture (Farm)",
+    designation: "Govt. Agri. Station Multan",
+    phone: "",
+    email: "",
   },
 ];
 

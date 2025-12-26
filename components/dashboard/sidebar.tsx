@@ -39,6 +39,8 @@ const departmentInfo: Record<string, { route: string; name: string }> = {
   "cmj65nmep0000e0txy17pplhy": { route: "/dashboard/raedc", name: "RAEDC Dashboard" },
   "agri-ext": { route: "/dashboard/agri-extension", name: "Agri Extension" },
   "erss": { route: "/dashboard/entomology", name: "Entomology" },
+  "arc": { route: "/dashboard/adaptive-research", name: "Adaptive Research" },
+  "adp": { route: "/dashboard/adaptive-research", name: "Adaptive Research" },
 };
 
 const adminNavigation = [
