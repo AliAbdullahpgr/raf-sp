@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -18,6 +19,12 @@ model User {
   updatedAt    DateTime    @updatedAt
   image        String?
   department   Department? @relation(fields: [departmentId], references: [id])
+
+  // Resource Request relations
+  requestsMade       ResourceRequest[]  @relation("RequestedBy")
+  requestsReviewed   ResourceRequest[]  @relation("ReviewedBy")
+  auditLogsPerformed RequestAuditLog[]
+  notifications      Notification[]
 
   @@index([departmentId])
   @@index([email])
@@ -36,7 +43,9 @@ model Department {
   focalPerson                     String?
   phone                           String?
   amriInventory                   AMRIInventory[]
+  adaptiveResearchPositions       AdaptiveResearchPosition[]
   agriEngineeringMultanRegionData AgriEngineeringMultanRegionData[]
+  agriculturalExtensionWing       AgriculturalExtensionWing[]
   agronomyLabEquipment            AgronomyLabEquipment[]
   criMultanAssets                 CRIMultanAssets[]
   erssStockRegister               ERSSStockRegister[]
@@ -45,14 +54,16 @@ model Department {
   foodAnalysisLabEquipment        FoodAnalysisLabEquipment[]
   mnsuamEstateFacilities          MNSUAMEstateFacilities[]
   mriAssets                       MRIAssets[]
-  adaptiveResearchPositions       AdaptiveResearchPosition[]
   pesticideQCLabData              PesticideQCLabData[]
+  raedcEquipment                  RAEDCEquipment[]
   rariBahawalpurAssets            RARIBahawalpurAssets[]
   soilWaterTestingProject         SoilWaterTestingProject[]
-  valueAdditionLabEquipment       ValueAdditionLabEquipment[]
-  raedcEquipment                  RAEDCEquipment[]
-  agriculturalExtensionWing       AgriculturalExtensionWing[]
   users                           User[]
+  valueAdditionLabEquipment       ValueAdditionLabEquipment[]
+
+  // Resource Request relations
+  outgoingRequests ResourceRequest[] @relation("RequestingDept")
+  incomingRequests ResourceRequest[] @relation("LendingDept")
 
   @@index([name])
 }
@@ -234,11 +245,11 @@ model ValueAdditionLabEquipment {
   type         String
   imageUrl     String?
   departmentId String
-  labName      String?         // "Value Addition and Food Analysis Lab" or "Nutrient Analytical & Food Processing Lab"
-  roomNumber   String?         // Room # 127 or Room # 114-115
-  blockName    String?         // "Academic Block" or "Postgraduate Block"
+  labName      String?
+  roomNumber   String?
+  blockName    String?
   quantity     Int             @default(1)
-  focalPerson  String?         // Dr. Shabbir Ahmad
+  focalPerson  String?
   displayOrder Int?
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
@@ -250,30 +261,23 @@ model ValueAdditionLabEquipment {
 }
 
 model CRIMultanAssets {
-  id                 String          @id @default(cuid())
-  name               String
-  type               String          // "Laboratory Equipment" or "Farm Machinery"
-  imageUrl           String?
-  departmentId       String
-  
-  // For Lab Equipment
-  makeModel          String?         // Make/Model/Specification
-  labDepartment      String?         // Name of Lab/Department/Section
-  purposeFunction    String?         // Purpose/Function
-  
-  // For Farm Machinery
-  year               String?         // Year of purchase
-  location           String?         // Location (e.g., "CRI, Farm Shed")
-  
-  // Common fields
-  quantity           Int             @default(1)
-  operationalStatus  String?         // "Functional" or "Non-Functional"
-  description        String?         // For storing values like "24.6 acres"
-  
-  createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
-  status             EquipmentStatus @default(AVAILABLE)
-  department         Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  id                String          @id @default(cuid())
+  name              String
+  type              String
+  imageUrl          String?
+  departmentId      String
+  makeModel         String?
+  labDepartment     String?
+  purposeFunction   String?
+  year              String?
+  location          String?
+  quantity          Int             @default(1)
+  operationalStatus String?
+  description       String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  status            EquipmentStatus @default(AVAILABLE)
+  department        Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   @@index([departmentId])
   @@index([status])
@@ -360,19 +364,19 @@ model AgriEngineeringMultanRegionData {
 }
 
 model RAEDCEquipment {
-  id              String          @id @default(cuid())
-  name            String
-  type            String
-  imageUrl        String?
-  departmentId    String
-  facilityType    String?         // Training Hall, Computer Lab, Library, Auditorium, Demonstration Farm
-  capacity        Int?
-  location        String?         // Specific location within RAEDC
-  functionality   String?         // Operational, Under Maintenance, etc
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  status          EquipmentStatus @default(AVAILABLE)
-  department      Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  id            String          @id @default(cuid())
+  name          String
+  type          String
+  imageUrl      String?
+  departmentId  String
+  facilityType  String?
+  capacity      Int?
+  location      String?
+  functionality String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  status        EquipmentStatus @default(AVAILABLE)
+  department    Department      @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
   @@index([departmentId])
   @@index([status])
@@ -385,7 +389,7 @@ model AgriculturalExtensionWing {
   location        String
   areaSquareFeet  Int?
   remarks         String?
-  status          String          // Utilized, Unused, etc
+  status          String
   functionality   String?
   departmentId    String
   createdAt       DateTime        @default(now())
@@ -398,7 +402,7 @@ model AgriculturalExtensionWing {
 }
 
 model AdaptiveResearchPosition {
-  id                      String      @id @default(cuid())
+  id                      String     @id @default(cuid())
   attachedDepartment      String?
   postName                String
   bpsScale                String
@@ -418,6 +422,49 @@ model AdaptiveResearchPosition {
   @@index([orderNumber])
 }
 
+model VisitorCounter {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  count     Int      @default(0)
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+}
+
+model ento_inventory_items {
+  id                      Int       @id @default(autoincrement())
+  item_no                 Int
+  name                    String
+  quantity_label          String?
+  date_received           DateTime? @db.Date
+  last_verified           DateTime? @db.Date
+  last_verification_label String?
+  register_label          String?
+  source_line             String?
+  created_at              DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([date_received], map: "ento_inventory_date_received_idx")
+  @@index([item_no], map: "ento_inventory_item_no_idx")
+}
+
+model ento_profile {
+  id              Int       @id @default(autoincrement())
+  department_id   String    @unique
+  department_name String
+  location        String?
+  focal_person    String?
+  designation     String?
+  email           String?
+  officers        Int?
+  officials       Int?
+  land_acres      Decimal?  @db.Decimal(10, 2)
+  rooms           Int?
+  register_title  String?
+  register_note   String?
+  compiled_on     DateTime? @db.Date
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+}
+
 enum Role {
   ADMIN
   DEPT_HEAD
@@ -430,9 +477,123 @@ enum EquipmentStatus {
   DISCARDED
 }
 
-model VisitorCounter {
-  id        String   @id @default(cuid())
-  count     Int      @default(0)
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+  BORROWED
+  RETURNED
+  OVERDUE
+}
+
+enum NotificationType {
+  REQUEST_RECEIVED
+  REQUEST_APPROVED
+  REQUEST_REJECTED
+  REQUEST_EXPIRING
+  REQUEST_EXPIRED
+  BORROW_STARTED
+  RETURN_DUE_SOON
+  RESOURCE_OVERDUE
+  RESOURCE_RETURNED
+}
+
+// ==========================================
+// RESOURCE REQUEST SYSTEM MODELS
+// ==========================================
+
+model ResourceRequest {
+  id String @id @default(cuid())
+
+  // Resource identification (polymorphic - works with any table)
+  resourceType String // "Equipment" | "AMRIInventory" | "CRIMultanAssets" etc.
+  resourceId   String // ID of the specific resource
+  resourceName String // Cached name for display
+
+  // Department relationships
+  requestingDeptId String
+  lendingDeptId    String
+  requestingDept   Department @relation("RequestingDept", fields: [requestingDeptId], references: [id])
+  lendingDept      Department @relation("LendingDept", fields: [lendingDeptId], references: [id])
+
+  // Request metadata
+  requestedById String
+  requestedBy   User    @relation("RequestedBy", fields: [requestedById], references: [id])
+  requestReason String?
+
+  // Status tracking
+  status RequestStatus @default(PENDING)
+
+  // Approval workflow
+  reviewedById    String?
+  reviewedBy      User?     @relation("ReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt      DateTime?
+  rejectionReason String?
+
+  // Borrowing details (set when approved)
+  borrowDurationDays Int? // 10, 20, 30... 90
+  borrowStartDate    DateTime?
+  borrowEndDate      DateTime?
+  actualReturnDate   DateTime?
+
+  // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  expiresAt DateTime // Auto-set to createdAt + 15 days
+
+  // Relations
+  auditLogs     RequestAuditLog[]
+  notifications Notification[]
+
+  @@index([requestingDeptId])
+  @@index([lendingDeptId])
+  @@index([requestedById])
+  @@index([status])
+  @@index([resourceType, resourceId])
+  @@index([expiresAt])
+}
+
+model RequestAuditLog {
+  id        String          @id @default(cuid())
+  requestId String
+  request   ResourceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  action         String // "CREATED", "APPROVED", "REJECTED", "EXPIRED", "BORROWED", "RETURNED", "MARKED_OVERDUE"
+  performedById  String
+  performedBy    User          @relation(fields: [performedById], references: [id])
+  previousStatus RequestStatus?
+  newStatus      RequestStatus
+  notes          String?
+  metadata       Json? // Additional data like duration, dates, etc.
+
+  createdAt DateTime @default(now())
+
+  @@index([requestId])
+  @@index([performedById])
+  @@index([createdAt])
+}
+
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    NotificationType
+  title   String
+  message String
+
+  // Optional link to request
+  requestId String?
+  request   ResourceRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  // Status
+  read      Boolean @default(false)
+  emailSent Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
 }

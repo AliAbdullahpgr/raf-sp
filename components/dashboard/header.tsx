@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { NotificationCenter } from "@/components/resource-requests";
 
 interface HeaderProps {
   user?: {
@@ -38,8 +39,9 @@ export function Header({ user }: HeaderProps) {
           </p>
         </div>
 
-        {/* Right side - User menu */}
+        {/* Right side - Notifications and User menu */}
         <div className="flex items-center gap-2 lg:gap-4">
+          <NotificationCenter />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button

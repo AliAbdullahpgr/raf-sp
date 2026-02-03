@@ -12,6 +12,8 @@ import {
   Users,
   Eye,
   BarChart3,
+  Send,
+  Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -60,6 +62,11 @@ const adminNavigation = [
     icon: Users,
   },
   {
+    name: "Resource Requests",
+    href: "/dashboard/requests",
+    icon: Send,
+  },
+  {
     name: "Settings",
     href: "/dashboard/settings",
     icon: Settings,
@@ -84,6 +91,11 @@ export function Sidebar({ userRole = "DEPT_HEAD", departmentId }: SidebarProps) 
         name: deptInfo?.name || "My Dashboard",
         href: deptInfo?.route || "/dashboard",
         icon: LayoutDashboard,
+      },
+      {
+        name: "Resource Requests",
+        href: "/dashboard/requests",
+        icon: Send,
       },
       {
         name: "Settings",

@@ -1,10 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Send, Package, ArrowUpRight } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useAMRIAssets, useDeleteAMRIAsset, type AMRIAsset } from "@/hooks/use-amri";
+import { useBorrowedResources, useLentResources } from "@/hooks/use-resource-requests";
 import { AMRIAssetTable } from "@/components/amri/amri-asset-table";
 import { AMRIAssetForm } from "@/components/amri/amri-asset-form";
+import { ResourceRequestDialog, BorrowedResourcesList, LentResourcesList } from "@/components/resource-requests";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,13 +24,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export default function AMRIDashboardPage() {
+  const { data: session } = useSession();
+  const departmentId = session?.user?.departmentId || "amri";
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<AMRIAsset | null>(null);
 
   // Fetch AMRI assets
   const { data: assets, isLoading, error, refetch } = useAMRIAssets();
+
+  // Fetch borrowed and lent resources
+  const { data: borrowedResources } = useBorrowedResources();
+  const { data: lentResources } = useLentResources();
 
   // Delete mutation
   const deleteMutation = useDeleteAMRIAsset();
@@ -55,6 +66,8 @@ export default function AMRIDashboardPage() {
   const availableCount = assets?.filter((a) => a.status === "AVAILABLE").length || 0;
   const inUseCount = assets?.filter((a) => a.status === "IN_USE").length || 0;
   const needsRepairCount = assets?.filter((a) => a.status === "NEEDS_REPAIR").length || 0;
+  const borrowedCount = borrowedResources?.length || 0;
+  const lentCount = lentResources?.length || 0;
 
   return (
     <div className="space-y-6">
@@ -68,14 +81,25 @@ export default function AMRIDashboardPage() {
             Manage Agricultural Mechanization Research Institute assets and inventory
           </p>
         </div>
-        <Button onClick={() => setIsDialogOpen(true)} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Asset
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <ResourceRequestDialog
+            currentDepartmentId={departmentId}
+            trigger={
+              <Button variant="outline">
+                <Send className="h-4 w-4 mr-2" />
+                Request Resource
+              </Button>
+            }
+          />
+          <Button onClick={() => setIsDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Asset
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Assets</CardTitle>
@@ -108,6 +132,28 @@ export default function AMRIDashboardPage() {
             <div className="text-2xl font-bold text-yellow-600">{needsRepairCount}</div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              <Package className="h-4 w-4 text-blue-600" />
+              Borrowed
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{borrowedCount}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-1">
+              <ArrowUpRight className="h-4 w-4 text-orange-600" />
+              Lent
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{lentCount}</div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Asset Table */}
@@ -136,6 +182,14 @@ export default function AMRIDashboardPage() {
           </LoadingState>
         </CardContent>
       </Card>
+
+      {/* Borrowed and Lent Resources */}
+      {(borrowedCount > 0 || lentCount > 0) && (
+        <div className="grid gap-4 md:grid-cols-2">
+          {borrowedCount > 0 && <BorrowedResourcesList />}
+          {lentCount > 0 && <LentResourcesList />}
+        </div>
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
