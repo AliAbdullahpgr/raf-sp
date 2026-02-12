@@ -6,7 +6,8 @@
       "Bash(npx tsc --noEmit)",
       "Bash(npm install:*)",
       "Bash(npx prisma:*)",
-      "Bash(del prisma.config.ts)"
+      "Bash(del prisma.config.ts)",
+      "Bash(npm ls:*)"
     ]
   }
 }
