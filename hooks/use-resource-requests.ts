@@ -193,7 +193,7 @@ export function useLentResources() {
     queryFn: async () => {
       const result = await getLentResources();
       if (!result.success) {
-        throw new Error(result.message || "Failed to fetch lent resources");
+        throw new Error(result.message || "Failed to fetch rented resources");
       }
       return result.data as ResourceRequest[];
     },

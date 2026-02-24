@@ -748,8 +748,8 @@ export async function getLentResources(): Promise<ActionResult> {
 
     return { success: true, data: requests };
   } catch (error) {
-    console.error("Error fetching lent resources:", error);
-    return { success: false, message: "Failed to fetch lent resources" };
+    console.error("Error fetching rented resources:", error);
+    return { success: false, message: "Failed to fetch rented resources" };
   }
 }
 
@@ -1100,8 +1100,8 @@ export async function processOverdueResources(): Promise<ActionResult> {
           data: {
             userId: lendingDeptHead.id,
             type: NotificationType.RESOURCE_OVERDUE,
-            title: "Lent Resource Overdue",
-            message: `"${request.resourceName}" lent to ${request.requestingDept.name} is overdue.`,
+            title: "Rented Resource Overdue",
+            message: `"${request.resourceName}" rented to ${request.requestingDept.name} is overdue.`,
             requestId: request.id,
           },
         });

@@ -124,14 +124,14 @@ export default function RequestsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Lent Out</CardTitle>
+            <CardTitle className="text-sm font-medium">Rented Out</CardTitle>
             <ArrowUpRight className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
               {counts?.lent || 0}
             </div>
-            <p className="text-xs text-gray-500">Currently lending</p>
+            <p className="text-xs text-gray-500">Currently renting</p>
           </CardContent>
         </Card>
 
@@ -175,7 +175,7 @@ export default function RequestsPage() {
             )}
           </TabsTrigger>
           <TabsTrigger value="borrowed">Borrowed</TabsTrigger>
-          <TabsTrigger value="lent">Lent</TabsTrigger>
+          <TabsTrigger value="lent">Rented</TabsTrigger>
         </TabsList>
 
         {/* Incoming Requests Tab */}
@@ -271,7 +271,7 @@ export default function RequestsPage() {
           <BorrowedResourcesList />
         </TabsContent>
 
-        {/* Lent Resources Tab */}
+        {/* Rented Resources Tab */}
         <TabsContent value="lent">
           <LentResourcesList />
         </TabsContent>

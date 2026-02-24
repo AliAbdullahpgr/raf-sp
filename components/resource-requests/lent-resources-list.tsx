@@ -29,21 +29,21 @@ export function LentResourcesList() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ArrowUpRight className="h-5 w-5 text-orange-600" />
-          Lent Resources
+          Rented Resources
           <Badge variant="outline" className="ml-2 text-orange-600 border-orange-300">
             Currently Unavailable
           </Badge>
         </CardTitle>
         <CardDescription>
-          Resources from your department that are currently lent to other departments
+          Resources from your department that are currently rented to other departments
         </CardDescription>
       </CardHeader>
       <CardContent>
         <LoadingState
           isLoading={isLoading}
           error={error}
-          loadingText="Loading lent resources..."
-          errorText="Failed to load lent resources"
+          loadingText="Loading rented resources..."
+          errorText="Failed to load rented resources"
           onRetry={() => refetch()}
         >
           {lentResources && lentResources.length > 0 ? (
@@ -55,9 +55,9 @@ export function LentResourcesList() {
           ) : (
             <div className="text-center py-8 text-gray-500">
               <ArrowUpRight className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p>No lent resources</p>
+              <p>No rented resources</p>
               <p className="text-sm">
-                Resources you lend to other departments will appear here
+                Resources you rent to other departments will appear here
               </p>
             </div>
           )}
@@ -100,7 +100,7 @@ function LentResourceItem({ resource }: LentResourceItemProps) {
         <div className="flex items-center gap-4 mt-1 text-xs text-gray-600">
           <span className="flex items-center gap-1">
             <Building2 className="h-3 w-3" />
-            Lent to {resource.requestingDept.name}
+            Rented to {resource.requestingDept.name}
           </span>
           {dueDate && (
             <span className="flex items-center gap-1">

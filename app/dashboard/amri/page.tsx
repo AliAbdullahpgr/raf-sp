@@ -147,7 +147,7 @@ export default function AMRIDashboardPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-1">
               <ArrowUpRight className="h-4 w-4 text-orange-600" />
-              Lent
+              Rented
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -183,7 +183,7 @@ export default function AMRIDashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Borrowed and Lent Resources */}
+      {/* Borrowed and Rented Resources */}
       {(borrowedCount > 0 || lentCount > 0) && (
         <div className="grid gap-4 md:grid-cols-2">
           {borrowedCount > 0 && <BorrowedResourcesList />}
