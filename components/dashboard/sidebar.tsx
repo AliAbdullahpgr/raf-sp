@@ -45,6 +45,19 @@ const departmentInfo: Record<string, { route: string; name: string }> = {
   "adp": { route: "/dashboard/adaptive-research", name: "Adaptive Research" },
 };
 
+const superAdminNavigation = [
+  {
+    name: "Dept Admin Views",
+    href: "/dashboard/super-admin",
+    icon: Eye,
+  },
+  {
+    name: "Dept Page Views",
+    href: "/dashboard/super-admin/department-views",
+    icon: BarChart3,
+  },
+];
+
 const adminNavigation = [
   {
     name: "Dashboard",
@@ -79,6 +92,10 @@ export function Sidebar({ userRole = "DEPT_HEAD", departmentId }: SidebarProps) 
 
   // Generate navigation based on user role and department
   const navigation = useMemo(() => {
+    if (userRole === "SUPER_ADMIN") {
+      return superAdminNavigation;
+    }
+
     if (userRole === "ADMIN") {
       return adminNavigation;
     }

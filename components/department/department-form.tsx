@@ -27,6 +27,10 @@ interface DepartmentFormProps {
     name: string;
     location: string;
     logo?: string | null;
+    email?: string | null;
+    secondaryEmail?: string | null;
+    focalPerson?: string | null;
+    phone?: string | null;
   };
   onSuccess?: () => void;
 }
@@ -41,6 +45,10 @@ export function DepartmentForm({ department, onSuccess }: DepartmentFormProps) {
       name: department?.name || "",
       location: department?.location || "",
       logo: department?.logo || "",
+      email: department?.email || "",
+      secondaryEmail: department?.secondaryEmail || "",
+      focalPerson: department?.focalPerson || "",
+      phone: department?.phone || "",
     },
   });
 
@@ -111,6 +119,80 @@ export function DepartmentForm({ department, onSuccess }: DepartmentFormProps) {
               <FormControl>
                 <Input
                   placeholder="Enter department location"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Primary Email (Optional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="department@example.com"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="secondaryEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Secondary Email (Optional)</FormLabel>
+              <FormControl>
+                <Input
+                  type="email"
+                  placeholder="alternate@example.com"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="focalPerson"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Focal Person (Optional)</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Name of focal person"
+                  disabled={isLoading}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone (Optional)</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="+92-XXX-XXXXXXX"
                   disabled={isLoading}
                   {...field}
                 />

@@ -40,6 +40,7 @@ model Department {
   description                     String?
   designation                     String?
   email                           String?
+  secondaryEmail                  String?
   focalPerson                     String?
   phone                           String?
   amriInventory                   AMRIInventory[]
@@ -422,6 +423,18 @@ model AdaptiveResearchPosition {
   @@index([orderNumber])
 }
 
+model PageView {
+  id           String   @id @default(cuid())
+  page         String   // e.g. "/dashboard/mri", "/dashboard/admin/departments"
+  departmentId String?  // which department this page belongs to (null for admin pages)
+  userId       String?  // who accessed it
+  createdAt    DateTime @default(now())
+
+  @@index([page])
+  @@index([departmentId])
+  @@index([createdAt])
+}
+
 model VisitorCounter {
   id        String   @id @default(dbgenerated("gen_random_uuid()"))
   count     Int      @default(0)
@@ -466,6 +479,7 @@ model ento_profile {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
   DEPT_HEAD
 }

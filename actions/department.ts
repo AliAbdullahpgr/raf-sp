@@ -47,7 +47,7 @@ export async function createDepartment(
       };
     }
 
-    const { name, location, logo } = validatedFields.data;
+    const { name, location, logo, email, secondaryEmail, focalPerson, phone } = validatedFields.data;
 
     // Check if department name already exists
     const existingDepartment = await prisma.department.findUnique({
@@ -67,6 +67,10 @@ export async function createDepartment(
         name,
         location,
         logo: logo || null,
+        email: email || null,
+        secondaryEmail: secondaryEmail || null,
+        focalPerson: focalPerson || null,
+        phone: phone || null,
       },
       include: {
         _count: {
@@ -332,8 +336,8 @@ export async function getDepartmentById(id: string): Promise<ActionResult> {
 
     const { role } = session.user;
 
-    // Admin check
-    if (role !== "ADMIN") {
+    // Admin or Super Admin check
+    if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
       return {
         success: false,
         message: "Access denied. Admin privileges required.",

@@ -29,6 +29,10 @@ interface Department {
   name: string;
   location: string;
   logo?: string | null;
+  email?: string | null;
+  secondaryEmail?: string | null;
+  focalPerson?: string | null;
+  phone?: string | null;
   _count: {
     equipment: number;
     users: number;

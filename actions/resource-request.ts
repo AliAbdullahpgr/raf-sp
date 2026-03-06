@@ -142,6 +142,26 @@ export async function createResourceRequest(
           requestId: request.id,
         },
       });
+
+      // Send email to the lending department focal person
+      if (lendingDeptHead.email) {
+        const { sendNotificationEmail } = await import("@/lib/email");
+        await sendNotificationEmail({
+          type: NotificationType.REQUEST_RECEIVED,
+          recipientName: lendingDeptHead.name,
+          recipientEmail: lendingDeptHead.email,
+          resourceName,
+          departmentName: request.requestingDept.name,
+          message: requestReason || `${request.requestingDept.name} has requested "${resourceName}" from your department.`,
+          requestId: request.id,
+        });
+
+        // Mark notification as email sent
+        await prisma.notification.updateMany({
+          where: { requestId: request.id, userId: lendingDeptHead.id },
+          data: { emailSent: true },
+        });
+      }
     }
 
     revalidatePath("/dashboard");

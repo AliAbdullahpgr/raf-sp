@@ -38,6 +38,11 @@ export default auth((req) => {
       return NextResponse.redirect(loginUrl);
     }
 
+    // SUPER_ADMIN gets redirected to super-admin dashboard by default
+    if (pathname === "/dashboard" && userRole === "SUPER_ADMIN") {
+      return NextResponse.redirect(new URL("/dashboard/super-admin", req.url));
+    }
+
     // Redirect department heads to their specific dashboard
     if (
       pathname === "/dashboard" &&
@@ -48,10 +53,16 @@ export default auth((req) => {
       return NextResponse.redirect(new URL(departmentDashboardRoutes[userDepartmentId], req.url));
     }
 
-    // Check for admin-only routes
+    // Check for admin-only routes - allow both ADMIN and SUPER_ADMIN
     if (pathname.startsWith("/dashboard/admin")) {
-      if (userRole !== "ADMIN") {
-        // Redirect non-admin users to main dashboard
+      if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN") {
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+    }
+
+    // Check for super-admin routes
+    if (pathname.startsWith("/dashboard/super-admin")) {
+      if (userRole !== "SUPER_ADMIN") {
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }
     }
@@ -60,6 +71,9 @@ export default auth((req) => {
   // Redirect authenticated users away from auth pages
   if (pathname.startsWith("/login") || pathname.startsWith("/signup")) {
     if (isAuthenticated) {
+      if (userRole === "SUPER_ADMIN") {
+        return NextResponse.redirect(new URL("/dashboard/super-admin", req.url));
+      }
       // Redirect department heads to their specific dashboard
       if (userRole === "DEPT_HEAD" && userDepartmentId && departmentDashboardRoutes[userDepartmentId]) {
         return NextResponse.redirect(new URL(departmentDashboardRoutes[userDepartmentId], req.url));

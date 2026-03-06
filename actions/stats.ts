@@ -28,8 +28,8 @@ export async function getDashboardStats(
     // Determine which department to filter by
     let filterDepartmentId: string | undefined;
 
-    if (role === "ADMIN") {
-      // Admin can optionally filter by department, or see all
+    if (role === "ADMIN" || role === "SUPER_ADMIN") {
+      // Admin/Super Admin can optionally filter by department, or see all
       filterDepartmentId = departmentId;
     } else if (role === "DEPT_HEAD") {
       // Department heads can only see their own department

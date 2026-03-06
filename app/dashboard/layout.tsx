@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/providers/session-provider";
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { PageViewTracker } from "@/components/page-view-tracker";
 
 export default async function DashboardLayout({
   children,
@@ -31,6 +32,7 @@ export default async function DashboardLayout({
 
             {/* Page content */}
             <main className="p-4 sm:p-6 lg:p-8">
+              <PageViewTracker userRole={session.user.role} />
               <ErrorBoundary>{children}</ErrorBoundary>
             </main>
           </div>

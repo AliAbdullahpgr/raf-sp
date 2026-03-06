@@ -21,8 +21,8 @@ export async function getUsers(): Promise<ActionResult> {
 
     const { role } = session.user;
 
-    // Admin check
-    if (role !== "ADMIN") {
+    // Admin or Super Admin check
+    if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
       return {
         success: false,
         message: "Access denied. Admin privileges required.",
@@ -149,7 +149,7 @@ export async function updateUserDepartment(
  */
 export async function updateUserRole(
   userId: string,
-  role: "ADMIN" | "DEPT_HEAD"
+  role: "SUPER_ADMIN" | "ADMIN" | "DEPT_HEAD"
 ): Promise<ActionResult> {
   try {
     const session = await auth();

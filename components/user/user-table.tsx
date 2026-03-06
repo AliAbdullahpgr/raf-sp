@@ -38,7 +38,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "DEPT_HEAD";
+  role: "SUPER_ADMIN" | "ADMIN" | "DEPT_HEAD";
   departmentId?: string | null;
   department?: {
     id: string;
@@ -121,7 +121,7 @@ export function UserTable({ data, departments, onSuccess }: UserTableProps) {
     }
   }
 
-  async function handleRoleChange(userId: string, role: "ADMIN" | "DEPT_HEAD") {
+  async function handleRoleChange(userId: string, role: "SUPER_ADMIN" | "ADMIN" | "DEPT_HEAD") {
     setIsUpdating(userId);
     try {
       const result = await updateUserRole(userId, role);
@@ -180,7 +180,7 @@ export function UserTable({ data, departments, onSuccess }: UserTableProps) {
           <Select
             value={user.role}
             onValueChange={(value) =>
-              handleRoleChange(user.id, value as "ADMIN" | "DEPT_HEAD")
+              handleRoleChange(user.id, value as "SUPER_ADMIN" | "ADMIN" | "DEPT_HEAD")
             }
             disabled={isUpdatingThis}
           >
@@ -188,6 +188,12 @@ export function UserTable({ data, departments, onSuccess }: UserTableProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="SUPER_ADMIN">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-purple-600" />
+                  Super Admin
+                </div>
+              </SelectItem>
               <SelectItem value="ADMIN">
                 <div className="flex items-center gap-2">
                   <Shield className="h-4 w-4" />
@@ -293,6 +299,7 @@ export function UserTable({ data, departments, onSuccess }: UserTableProps) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Roles</SelectItem>
+            <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
             <SelectItem value="ADMIN">Admin</SelectItem>
             <SelectItem value="DEPT_HEAD">Department Head</SelectItem>
           </SelectContent>

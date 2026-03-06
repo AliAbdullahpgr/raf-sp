@@ -10,7 +10,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: "ADMIN" | "DEPT_HEAD";
+  role: "SUPER_ADMIN" | "ADMIN" | "DEPT_HEAD";
   departmentId?: string | null;
   department?: {
     id: string;
