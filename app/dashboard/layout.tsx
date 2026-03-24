@@ -32,7 +32,7 @@ export default async function DashboardLayout({
 
             {/* Page content */}
             <main className="p-4 sm:p-6 lg:p-8">
-              <PageViewTracker userRole={session.user.role} />
+              <PageViewTracker userRole={session.user.role} departmentId={session.user.departmentId} />
               <ErrorBoundary>{children}</ErrorBoundary>
             </main>
           </div>

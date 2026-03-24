@@ -5,21 +5,20 @@ import { getSuperAdminOverview } from "@/actions/super-admin";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  Building2,
-  Users,
   Eye,
   BarChart3,
   TrendingUp,
   Monitor,
   RefreshCw,
+  Building2,
+  Users,
 } from "lucide-react";
-
+import Link from "next/link";
 
 export default function SuperAdminDashboard() {
   const [data, setData] = useState<any>(null);
@@ -50,15 +49,16 @@ export default function SuperAdminDashboard() {
     return <div className="text-center py-12 text-red-500">Failed to load data</div>;
   }
 
-  // Sort departments by page views (most viewed first)
-  const sortedDepts = [...data.departments].sort((a: any, b: any) => {
-    const aViews = data.deptViewMap[a.id] || 0;
-    const bViews = data.deptViewMap[b.id] || 0;
-    return bViews - aViews;
-  });
+  const totalPublicViews = Object.values(data.publicDeptViewMap as Record<string, number>).reduce((s, v) => s + v, 0);
+  const totalAdminViews = Object.values(data.adminDeptViewMap as Record<string, number>).reduce((s, v) => s + v, 0);
 
-  // Find max views for progress bar scaling
-  const maxViews = Math.max(...Object.values(data.deptViewMap as Record<string, number>), 1);
+  // Top 5 for quick summary
+  const topPublic = Object.entries(data.publicDeptViewMap as Record<string, number>)
+    .sort(([, a], [, b]) => b - a).slice(0, 5);
+  const topAdmin = Object.entries(data.adminDeptViewMap as Record<string, number>)
+    .sort(([, a], [, b]) => b - a).slice(0, 5);
+  const maxPublic = Math.max(...Object.values(data.publicDeptViewMap as Record<string, number>), 1);
+  const maxAdmin = Math.max(...Object.values(data.adminDeptViewMap as Record<string, number>), 1);
 
   return (
     <div className="space-y-8">
@@ -71,9 +71,7 @@ export default function SuperAdminDashboard() {
             </div>
             Super Admin
           </h1>
-          <p className="text-gray-500 mt-1">
-            Monitor page views and department dashboard access
-          </p>
+          <p className="text-gray-500 mt-1">Overview of site traffic and department activity</p>
         </div>
         <Button
           variant="outline"
@@ -87,7 +85,7 @@ export default function SuperAdminDashboard() {
         </Button>
       </div>
 
-      {/* Top Stats */}
+      {/* Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-l-4 border-l-purple-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -124,122 +122,90 @@ export default function SuperAdminDashboard() {
 
         <Card className="border-l-4 border-l-orange-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Admin Panel Views</CardTitle>
-            <Monitor className="h-4 w-4 text-orange-500" />
+            <CardTitle className="text-sm font-medium text-gray-500">Total Users</CardTitle>
+            <Users className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-600">{data.adminPageViews.toLocaleString()}</div>
-            <p className="text-xs text-gray-500 mt-1">Admin pages accessed</p>
+            <div className="text-3xl font-bold text-orange-600">{data.totalUsers.toLocaleString()}</div>
+            <p className="text-xs text-gray-500 mt-1">Registered users</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Department Page Views Ranking */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-purple-500" />
-            Department Dashboard Access
-          </CardTitle>
-          <CardDescription>
-            How many times each department's admin panel has been accessed
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {sortedDepts.map((dept: any, index: number) => {
-              const views = data.deptViewMap[dept.id] || 0;
-              const recentViews = data.recentPageViewMap[`/dashboard/${dept.id}`] || 0;
-              const percentage = maxViews > 0 ? (views / maxViews) * 100 : 0;
-
-              return (
-                <div key={dept.id} className="group">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-bold text-gray-400 w-5">
-                        {index + 1}
-                      </span>
-                      <span className="font-medium text-gray-800">
-                        {dept.name}
-                      </span>
+      {/* Two summary cards side by side */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Public Views Summary */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Eye className="h-4 w-4 text-blue-500" />
+                Public Department Views
+              </CardTitle>
+              <p className="text-xs text-gray-500 mt-1">{totalPublicViews.toLocaleString()} total · top 5 shown</p>
+            </div>
+            <Link href="/dashboard/super-admin/department-views">
+              <Button variant="outline" size="sm">View All</Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {topPublic.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No views yet</p>}
+              {topPublic.map(([slug, views]: [string, number]) => {
+                const name = data.slugNameMap[slug] || slug;
+                const pct = maxPublic > 0 ? (views / maxPublic) * 100 : 0;
+                return (
+                  <div key={slug}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-medium text-gray-800">{name}</span>
+                      <span className="text-gray-500">{views.toLocaleString()}</span>
                     </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      {recentViews > 0 && (
-                        <span className="text-green-600 text-xs font-medium">
-                          +{recentViews} today
-                        </span>
-                      )}
-                      <span className="font-semibold text-gray-700 min-w-[60px] text-right">
-                        {views.toLocaleString()} views
-                      </span>
+                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-blue-400 to-cyan-500" style={{ width: `${Math.max(pct, 2)}%` }} />
                     </div>
                   </div>
-                  <div className="ml-8 h-2 bg-gray-100 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-purple-400 to-indigo-500 transition-all duration-500"
-                      style={{ width: `${Math.max(percentage, 2)}%` }}
-                    />
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Admin Dashboard Views Summary */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Monitor className="h-4 w-4 text-purple-500" />
+                Admin Dashboard Views
+              </CardTitle>
+              <p className="text-xs text-gray-500 mt-1">{totalAdminViews.toLocaleString()} total · top 5 shown</p>
+            </div>
+            <Link href="/dashboard/super-admin/admin-views">
+              <Button variant="outline" size="sm">View All</Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {topAdmin.length === 0 && <p className="text-sm text-gray-400 text-center py-4">No views yet</p>}
+              {topAdmin.map(([slug, views]: [string, number]) => {
+                const name = data.slugNameMap[slug] || slug;
+                const pct = maxAdmin > 0 ? (views / maxAdmin) * 100 : 0;
+                return (
+                  <div key={slug}>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="font-medium text-gray-800">{name}</span>
+                      <span className="text-gray-500">{views.toLocaleString()}</span>
+                    </div>
+                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-purple-400 to-indigo-500" style={{ width: `${Math.max(pct, 2)}%` }} />
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-
-            {sortedDepts.length === 0 && (
-              <div className="text-center py-8 text-gray-400">
-                No departments found
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Top Pages Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Monitor className="h-5 w-5 text-orange-500" />
-            All Page Views
-          </CardTitle>
-          <CardDescription>
-            Breakdown of views by page URL
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="py-3 px-4 text-left font-medium text-gray-500">Page</th>
-                  <th className="py-3 px-4 text-right font-medium text-gray-500">Total Views</th>
-                  <th className="py-3 px-4 text-right font-medium text-gray-500">Today</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(data.pageViewMap as Record<string, number>)
-                  .sort(([, a], [, b]) => (b as number) - (a as number))
-                  .map(([page, count]) => (
-                    <tr key={page} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4 font-mono text-xs text-gray-600">{page}</td>
-                      <td className="py-3 px-4 text-right font-semibold">{(count as number).toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right text-green-600">
-                        {(data.recentPageViewMap[page] || 0) > 0
-                          ? `+${data.recentPageViewMap[page]}`
-                          : "—"}
-                      </td>
-                    </tr>
-                  ))}
-                {Object.keys(data.pageViewMap).length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="py-8 text-center text-gray-400">
-                      No page views recorded yet
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

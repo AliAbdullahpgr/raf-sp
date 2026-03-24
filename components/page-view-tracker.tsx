@@ -4,44 +4,41 @@ import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { recordPageView } from "@/actions/page-view";
 
-// Map path prefixes to department IDs
-const pathToDeptId: Record<string, string> = {
-  "/dashboard/mri": "mri",
-  "/dashboard/amri": "amri",
-  "/dashboard/food-science": "food-science",
-  "/dashboard/cri": "cri",
-  "/dashboard/floriculture": "flori",
-  "/dashboard/rari": "rari",
-  "/dashboard/mnsuam": "mnsuam",
-  "/dashboard/soil-water": "soil-water",
-  "/dashboard/pesticide": "pest",
-  "/dashboard/agri-engineering": "agri-eng",
-  "/dashboard/raedc": "raedc",
-  "/dashboard/agri-extension": "agri-ext",
-  "/dashboard/entomology": "erss",
-  "/dashboard/adaptive-research": "arc",
-  "/dashboard/agronomy": "agronomy",
+// Map dashboard path segments to slugs used in PageView
+const dashboardSlugMap: Record<string, string> = {
+  mri: "mri",
+  amri: "amri",
+  "food-science": "food-science",
+  cri: "cri",
+  floriculture: "flori",
+  rari: "rari",
+  mnsuam: "mnsuam",
+  "soil-water": "soil-water",
+  pesticide: "pest",
+  "agri-engineering": "agri-eng",
+  raedc: "raedc",
+  "agri-extension": "ext",
+  entomology: "ento",
+  "adaptive-research": "arc",
+  agronomy: "agronomy",
 };
 
-export function PageViewTracker({ userRole }: { userRole?: string }) {
+export function PageViewTracker({ userRole, departmentId }: { userRole?: string; departmentId?: string | null }) {
   const pathname = usePathname();
   const lastTracked = useRef("");
 
   useEffect(() => {
-    // Don't track super admin visits
-    if (userRole === "SUPER_ADMIN") return;
-
     if (pathname && pathname !== lastTracked.current) {
       lastTracked.current = pathname;
 
-      // Find matching department
-      const deptId = Object.entries(pathToDeptId).find(([prefix]) =>
-        pathname.startsWith(prefix)
-      )?.[1];
+      // For dashboard dept pages, use the slug from the path
+      const dashboardMatch = pathname.match(/^\/dashboard\/([^/]+)/);
+      const segment = dashboardMatch?.[1];
+      const slug = segment && dashboardSlugMap[segment] ? dashboardSlugMap[segment] : undefined;
 
-      recordPageView(pathname, deptId);
+      recordPageView(pathname, slug ?? departmentId ?? undefined);
     }
-  }, [pathname, userRole]);
+  }, [pathname, userRole, departmentId]);
 
   return null;
 }

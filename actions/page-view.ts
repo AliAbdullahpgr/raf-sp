@@ -9,8 +9,6 @@ import { prisma } from "@/lib/prisma";
 export async function recordPageView(page: string, departmentId?: string) {
   try {
     const session = await auth();
-    // Never record super admin visits
-    if (session?.user?.role === "SUPER_ADMIN") return;
     await prisma.pageView.create({
       data: {
         page,

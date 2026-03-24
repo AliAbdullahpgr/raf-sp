@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePageView } from "@/hooks/use-page-view";
 
 // Import department pages
 import { MNSUAMPage } from "@/components/departments/mnsuam-page";
@@ -41,6 +42,8 @@ const departmentPages: Record<string, React.ComponentType> = {
 export default function DepartmentPage() {
   const params = useParams();
   const id = params.id as string;
+
+  usePageView(`/departments/${id}`, id);
 
   const DepartmentComponent = departmentPages[id];
 

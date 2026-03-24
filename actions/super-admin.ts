@@ -57,18 +57,70 @@ export async function getSuperAdminOverview(): Promise<ActionResult> {
       where: { page: { startsWith: "/dashboard/admin" } },
     });
 
-    // Get page views grouped by department
-    const deptPageViews = await prisma.pageView.groupBy({
+    // Slug -> display name mapping for public department pages
+    const slugNameMap: Record<string, string> = {
+      mnsuam: "MNSUAM",
+      amri: "AMRI",
+      rari: "RARI",
+      flori: "Floriculture",
+      "soil-water": "Soil & Water",
+      ento: "Entomology",
+      mri: "MRI",
+      ext: "Agri Extension",
+      "cotton-institute": "Cotton Institute",
+      pest: "Pesticide QC Lab",
+      raedc: "RAEDC",
+      adp: "ARC",
+      arc: "ARC",
+      "agri-eng": "Agri Engineering",
+    };
+
+    // Public department page views: /departments/[slug]
+    const publicDeptPageViews = await prisma.pageView.groupBy({
       by: ["departmentId"],
-      where: { departmentId: { not: null } },
+      where: {
+        departmentId: { not: null },
+        page: { startsWith: "/departments/" },
+      },
       _count: { id: true },
       orderBy: { _count: { id: "desc" } },
     });
 
-    // Build a map of departmentId -> view count
-    const deptViewMap: Record<string, number> = {};
-    for (const d of deptPageViews) {
-      if (d.departmentId) deptViewMap[d.departmentId] = d._count.id;
+    // Admin dashboard page views: /dashboard/[dept] (exclude super-admin and admin pages)
+    const adminDeptPageViews = await prisma.pageView.groupBy({
+      by: ["departmentId"],
+      where: {
+        departmentId: { not: null },
+        page: { startsWith: "/dashboard/" },
+        NOT: [
+          { page: { startsWith: "/dashboard/super-admin" } },
+          { page: { startsWith: "/dashboard/admin" } },
+        ],
+      },
+      _count: { id: true },
+      orderBy: { _count: { id: "desc" } },
+    });
+
+    // Build public page views map: slug -> count
+    const publicDeptViewMap: Record<string, number> = {};
+    for (const d of publicDeptPageViews) {
+      if (d.departmentId && slugNameMap[d.departmentId]) {
+        publicDeptViewMap[d.departmentId] = d._count.id;
+      }
+    }
+
+    // Build admin dashboard views map: slug -> count
+    const adminDeptViewMap: Record<string, number> = {};
+    for (const d of adminDeptPageViews) {
+      if (d.departmentId && slugNameMap[d.departmentId]) {
+        adminDeptViewMap[d.departmentId] = d._count.id;
+      }
+    }
+
+    // Combined deptViewMap for backward compat (total of both)
+    const deptViewMap: Record<string, number> = { ...publicDeptViewMap };
+    for (const [slug, count] of Object.entries(adminDeptViewMap)) {
+      deptViewMap[slug] = (deptViewMap[slug] || 0) + count;
     }
 
     // Build page view map
@@ -91,6 +143,9 @@ export async function getSuperAdminOverview(): Promise<ActionResult> {
         adminPageViews,
         departments,
         deptViewMap,
+        publicDeptViewMap,
+        adminDeptViewMap,
+        slugNameMap,
         pageViewMap,
         recentPageViewMap,
       },

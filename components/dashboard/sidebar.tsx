@@ -14,6 +14,7 @@ import {
   BarChart3,
   Send,
   Inbox,
+  Monitor,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -47,14 +48,19 @@ const departmentInfo: Record<string, { route: string; name: string }> = {
 
 const superAdminNavigation = [
   {
-    name: "Dept Admin Views",
+    name: "Overview",
     href: "/dashboard/super-admin",
     icon: Eye,
   },
   {
-    name: "Dept Page Views",
+    name: "Public Dept Views",
     href: "/dashboard/super-admin/department-views",
     icon: BarChart3,
+  },
+  {
+    name: "Admin Dashboard Views",
+    href: "/dashboard/super-admin/admin-views",
+    icon: Monitor,
   },
 ];
 
@@ -127,9 +133,7 @@ export function Sidebar({ userRole = "DEPT_HEAD", departmentId }: SidebarProps) 
   const NavLinks = () => (
     <>
       {navigation.map((item) => {
-        const isActive =
-          pathname === item.href ||
-          (item.href !== "/dashboard" && pathname.startsWith(item.href));
+        const isActive = pathname === item.href;
 
         return (
           <Link
