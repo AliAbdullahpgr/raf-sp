@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getSuperAdminOverview } from "@/actions/super-admin";
 import {
   Card,
@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Building2,
   Users,
@@ -16,19 +17,26 @@ import {
   BarChart3,
   TrendingUp,
   Monitor,
+  RefreshCw,
 } from "lucide-react";
 
 
 export default function SuperAdminDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchData = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true);
+    const result = await getSuperAdminOverview();
+    if (result.success) setData(result.data);
+    setLoading(false);
+    setRefreshing(false);
+  }, []);
 
   useEffect(() => {
-    getSuperAdminOverview().then((result) => {
-      if (result.success) setData(result.data);
-      setLoading(false);
-    });
-  }, []);
+    fetchData();
+  }, [fetchData]);
 
   if (loading) {
     return (
@@ -55,16 +63,28 @@ export default function SuperAdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
-            <Eye className="h-5 w-5 text-white" />
-          </div>
-          Super Admin
-        </h1>
-        <p className="text-gray-500 mt-1">
-          Monitor page views and department dashboard access
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+              <Eye className="h-5 w-5 text-white" />
+            </div>
+            Super Admin
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Monitor page views and department dashboard access
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fetchData(true)}
+          disabled={refreshing}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+          {refreshing ? "Refreshing..." : "Refresh"}
+        </Button>
       </div>
 
       {/* Top Stats */}
