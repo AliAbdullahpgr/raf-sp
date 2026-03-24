@@ -16,6 +16,21 @@ import {
   type RejectRequestInput,
 } from "@/lib/validations/resource-request";
 import { RequestStatus, NotificationType, EquipmentStatus } from "@prisma/client";
+import {
+  getResourceTransferability,
+  isNeverTransferableResourceType,
+} from "@/lib/resource-transfer-policy";
+
+type TransferableResourceRecord = {
+  id: string;
+  name: string;
+  type: string | null;
+  departmentId: string;
+  category?: string | null;
+  sectionCategory?: string | null;
+  status?: EquipmentStatus | null;
+  equipmentStatus?: EquipmentStatus | null;
+};
 
 // ==========================================
 // RESOURCE REQUEST OPERATIONS
@@ -72,6 +87,18 @@ export async function createResourceRequest(
       return { success: false, message: "Lending department not found" };
     }
 
+    const validatedResource = await validateTransferableResource(
+      resourceType,
+      resourceId,
+      lendingDeptId
+    );
+
+    if (validatedResource.ok === false) {
+      return { success: false, message: validatedResource.message };
+    }
+
+    const canonicalResourceName = validatedResource.resource.name || resourceName;
+
     // Check if there's already a pending/approved/borrowed request for this resource
     const existingRequest = await prisma.resourceRequest.findFirst({
       where: {
@@ -97,7 +124,7 @@ export async function createResourceRequest(
       data: {
         resourceType,
         resourceId,
-        resourceName,
+        resourceName: canonicalResourceName,
         requestingDeptId: departmentId,
         lendingDeptId,
         requestedById: userId,
@@ -138,7 +165,7 @@ export async function createResourceRequest(
           userId: lendingDeptHead.id,
           type: NotificationType.REQUEST_RECEIVED,
           title: "New Resource Request",
-          message: `${request.requestingDept.name} has requested "${resourceName}" from your department.`,
+          message: `${request.requestingDept.name} has requested "${canonicalResourceName}" from your department.`,
           requestId: request.id,
         },
       });
@@ -150,9 +177,9 @@ export async function createResourceRequest(
           type: NotificationType.REQUEST_RECEIVED,
           recipientName: lendingDeptHead.name,
           recipientEmail: lendingDeptHead.email,
-          resourceName,
+          resourceName: canonicalResourceName,
           departmentName: request.requestingDept.name,
-          message: requestReason || `${request.requestingDept.name} has requested "${resourceName}" from your department.`,
+          message: requestReason || `${request.requestingDept.name} has requested "${canonicalResourceName}" from your department.`,
           requestId: request.id,
         });
 
@@ -236,6 +263,16 @@ export async function approveResourceRequest(
         data: { status: RequestStatus.EXPIRED },
       });
       return { success: false, message: "This request has expired" };
+    }
+
+    const validatedResource = await validateTransferableResource(
+      request.resourceType,
+      request.resourceId,
+      request.lendingDeptId
+    );
+
+    if (validatedResource.ok === false) {
+      return { success: false, message: validatedResource.message };
     }
 
     // Calculate end date
@@ -436,6 +473,16 @@ export async function startBorrowing(requestId: string): Promise<ActionResult> {
     // Check if request is approved
     if (request.status !== RequestStatus.APPROVED) {
       return { success: false, message: "Can only start borrowing for approved requests" };
+    }
+
+    const validatedResource = await validateTransferableResource(
+      request.resourceType,
+      request.resourceId,
+      request.lendingDeptId
+    );
+
+    if (validatedResource.ok === false) {
+      return { success: false, message: validatedResource.message };
     }
 
     // Update request status to BORROWED
@@ -1244,6 +1291,427 @@ export async function sendReminders(): Promise<ActionResult> {
 // ==========================================
 
 /**
+ * Get the current status field regardless of model naming.
+ */
+function getResourceAvailabilityStatus(resource: TransferableResourceRecord): EquipmentStatus | null {
+  return resource.status ?? resource.equipmentStatus ?? null;
+}
+
+/**
+ * Convert a resource record to the lightweight shape used by the picker.
+ */
+function toAvailableResource(resource: TransferableResourceRecord) {
+  return {
+    id: resource.id,
+    name: resource.name,
+    type: resource.type ?? "Unknown",
+  };
+}
+
+/**
+ * Fetch a single resource record with the fields needed for transfer checks.
+ */
+async function getResourceRecordById(
+  resourceType: string,
+  resourceId: string
+): Promise<TransferableResourceRecord | null> {
+  switch (resourceType) {
+    case "Equipment":
+      return prisma.equipment.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "AMRIInventory":
+      return prisma.aMRIInventory.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "FoodAnalysisLabEquipment":
+      return prisma.foodAnalysisLabEquipment.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "MRIAssets":
+      return prisma.mRIAssets.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          category: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "AgronomyLabEquipment":
+      return prisma.agronomyLabEquipment.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "FloricultureStationAssets":
+      return prisma.floricultureStationAssets.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          category: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "RARIBahawalpurAssets":
+      return prisma.rARIBahawalpurAssets.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          category: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "MNSUAMEstateFacilities":
+      return prisma.mNSUAMEstateFacilities.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "ValueAdditionLabEquipment":
+      return prisma.valueAdditionLabEquipment.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "CRIMultanAssets":
+      return prisma.cRIMultanAssets.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "SoilWaterTestingProject":
+      return prisma.soilWaterTestingProject.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          category: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "ERSSStockRegister":
+      return prisma.eRSSStockRegister.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "PesticideQCLabData":
+      return prisma.pesticideQCLabData.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          sectionCategory: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "AgriEngineeringMultanRegionData":
+      return prisma.agriEngineeringMultanRegionData.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          category: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "RAEDCEquipment":
+      return prisma.rAEDCEquipment.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "AgriculturalExtensionWing":
+      return prisma.agriculturalExtensionWing.findUnique({
+        where: { id: resourceId },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          equipmentStatus: true,
+        },
+      });
+    default:
+      return null;
+  }
+}
+
+/**
+ * Fetch available resources from a model before transferability filtering.
+ */
+async function getAvailableResourceRecords(
+  departmentId: string,
+  resourceType: string
+): Promise<TransferableResourceRecord[]> {
+  if (isNeverTransferableResourceType(resourceType)) {
+    return [];
+  }
+
+  switch (resourceType) {
+    case "Equipment":
+      return prisma.equipment.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "AMRIInventory":
+      return prisma.aMRIInventory.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "FoodAnalysisLabEquipment":
+      return prisma.foodAnalysisLabEquipment.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "MRIAssets":
+      return prisma.mRIAssets.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          category: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "AgronomyLabEquipment":
+      return prisma.agronomyLabEquipment.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "FloricultureStationAssets":
+      return prisma.floricultureStationAssets.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          category: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "RARIBahawalpurAssets":
+      return prisma.rARIBahawalpurAssets.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          category: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "MNSUAMEstateFacilities":
+      return [];
+    case "ValueAdditionLabEquipment":
+      return prisma.valueAdditionLabEquipment.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "CRIMultanAssets":
+      return prisma.cRIMultanAssets.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "SoilWaterTestingProject":
+      return prisma.soilWaterTestingProject.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          category: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "ERSSStockRegister":
+      return prisma.eRSSStockRegister.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "PesticideQCLabData":
+      return prisma.pesticideQCLabData.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          sectionCategory: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "AgriEngineeringMultanRegionData":
+      return prisma.agriEngineeringMultanRegionData.findMany({
+        where: { departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          category: true,
+          departmentId: true,
+          status: true,
+        },
+      });
+    case "RAEDCEquipment":
+    case "AgriculturalExtensionWing":
+      return [];
+    default:
+      return [];
+  }
+}
+
+/**
+ * Validate that a specific resource is transferable for a given lending department.
+ */
+async function validateTransferableResource(
+  resourceType: string,
+  resourceId: string,
+  lendingDeptId: string,
+  options?: { requireAvailable?: boolean }
+): Promise<
+  | { ok: true; resource: TransferableResourceRecord }
+  | { ok: false; message: string }
+> {
+  const resource = await getResourceRecordById(resourceType, resourceId);
+
+  if (!resource) {
+    return { ok: false, message: "Selected resource was not found" };
+  }
+
+  if (resource.departmentId !== lendingDeptId) {
+    return { ok: false, message: "Selected resource does not belong to the chosen lending department" };
+  }
+
+  if (options?.requireAvailable !== false && getResourceAvailabilityStatus(resource) !== EquipmentStatus.AVAILABLE) {
+    return { ok: false, message: "Selected resource is no longer available" };
+  }
+
+  const decision = getResourceTransferability(resourceType, resource);
+  if (!decision.allowed) {
+    return {
+      ok: false,
+      message: decision.reason || "This resource is not transferable",
+    };
+  }
+
+  return { ok: true, resource };
+}
+
+/**
  * Update the status of a resource in its respective table
  */
 async function updateResourceStatus(
@@ -1373,109 +1841,10 @@ export async function getAvailableResourcesForDepartment(
       return { success: false, message: "Unauthorized" };
     }
 
-    let resources: { id: string; name: string; type: string }[] = [];
-
-    // Get available resources based on resource type
-    switch (resourceType) {
-      case "Equipment":
-        resources = await prisma.equipment.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "AMRIInventory":
-        resources = await prisma.aMRIInventory.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "FoodAnalysisLabEquipment":
-        resources = await prisma.foodAnalysisLabEquipment.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "MRIAssets":
-        resources = await prisma.mRIAssets.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "AgronomyLabEquipment":
-        resources = await prisma.agronomyLabEquipment.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "FloricultureStationAssets":
-        resources = await prisma.floricultureStationAssets.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "RARIBahawalpurAssets":
-        resources = await prisma.rARIBahawalpurAssets.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "MNSUAMEstateFacilities":
-        resources = await prisma.mNSUAMEstateFacilities.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "ValueAdditionLabEquipment":
-        resources = await prisma.valueAdditionLabEquipment.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "CRIMultanAssets":
-        resources = await prisma.cRIMultanAssets.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "SoilWaterTestingProject":
-        resources = await prisma.soilWaterTestingProject.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "ERSSStockRegister":
-        resources = await prisma.eRSSStockRegister.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "PesticideQCLabData":
-        resources = await prisma.pesticideQCLabData.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "AgriEngineeringMultanRegionData":
-        resources = await prisma.agriEngineeringMultanRegionData.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "RAEDCEquipment":
-        resources = await prisma.rAEDCEquipment.findMany({
-          where: { departmentId, status: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      case "AgriculturalExtensionWing":
-        resources = await prisma.agriculturalExtensionWing.findMany({
-          where: { departmentId, equipmentStatus: EquipmentStatus.AVAILABLE },
-          select: { id: true, name: true, type: true },
-        });
-        break;
-      default:
-        return { success: false, message: `Unknown resource type: ${resourceType}` };
-    }
+    const availableCandidates = await getAvailableResourceRecords(departmentId, resourceType);
+    const resources = availableCandidates
+      .filter((resource) => getResourceTransferability(resourceType, resource).allowed)
+      .map(toAvailableResource);
 
     return { success: true, data: resources };
   } catch (error) {

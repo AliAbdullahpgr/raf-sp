@@ -60,12 +60,10 @@ const departmentResourceTypes: Record<string, ResourceType> = {
   "food-science": "FoodAnalysisLabEquipment",
   flori: "FloricultureStationAssets",
   rari: "RARIBahawalpurAssets",
-  mnsuam: "MNSUAMEstateFacilities",
+  mnsuam: "ValueAdditionLabEquipment",
   "soil-water": "SoilWaterTestingProject",
   pest: "PesticideQCLabData",
   "agri-eng": "AgriEngineeringMultanRegionData",
-  raedc: "RAEDCEquipment",
-  "agri-ext": "AgriculturalExtensionWing",
   erss: "ERSSStockRegister",
   agronomy: "AgronomyLabEquipment",
 };
@@ -155,7 +153,7 @@ export function ResourceRequestDialog({
         <DialogHeader>
           <DialogTitle>Request Resource</DialogTitle>
           <DialogDescription>
-            Request a resource from another department. The department head will review your request.
+            Request a temporary movable asset from another department. The department head will review your request.
           </DialogDescription>
         </DialogHeader>
 
@@ -228,7 +226,7 @@ export function ResourceRequestDialog({
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Only available resources are shown
+                    Only available temporary assets are shown
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
