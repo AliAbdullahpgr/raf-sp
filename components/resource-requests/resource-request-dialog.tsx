@@ -64,7 +64,7 @@ const departmentResourceTypes: Record<string, ResourceType> = {
   "soil-water": "SoilWaterTestingProject",
   pest: "PesticideQCLabData",
   "agri-eng": "AgriEngineeringMultanRegionData",
-  erss: "ERSSStockRegister",
+  erss: "EntoInventoryItems",
   agronomy: "AgronomyLabEquipment",
 };
 

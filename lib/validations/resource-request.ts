@@ -62,6 +62,7 @@ export const RESOURCE_TYPES = {
   ERSSStockRegister: "ERSSStockRegister",
   PesticideQCLabData: "PesticideQCLabData",
   AgriEngineeringMultanRegionData: "AgriEngineeringMultanRegionData",
+  EntoInventoryItems: "EntoInventoryItems",
   RAEDCEquipment: "RAEDCEquipment",
   AgriculturalExtensionWing: "AgriculturalExtensionWing",
 } as const;

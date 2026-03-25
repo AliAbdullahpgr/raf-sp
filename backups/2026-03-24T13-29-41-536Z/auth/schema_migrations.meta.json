@@ -1,0 +1,20 @@
+{
+  "schema": "auth",
+  "table": "schema_migrations",
+  "kind": "table",
+  "rowCount": "74",
+  "primaryKeyColumns": [
+    "version"
+  ],
+  "columns": [
+    {
+      "column_name": "version",
+      "data_type": "character varying",
+      "udt_name": "varchar",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    }
+  ],
+  "dataFile": "auth\\schema_migrations.json"
+}

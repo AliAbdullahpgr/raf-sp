@@ -1,0 +1,92 @@
+[
+  {
+    "bucketId": "equipment-images",
+    "objectName": "equipment/1764241939901-8yxeaa5wsbq.jpeg",
+    "outputFile": "storage-files\\equipment-images\\equipment\\1764241939901-8yxeaa5wsbq.jpeg",
+    "size": 169212,
+    "metadata": {
+      "eTag": "\"7fe84d5d0ca09afdc96156da023ca631\"",
+      "size": 169212,
+      "mimetype": "image/jpeg",
+      "cacheControl": "max-age=3600",
+      "lastModified": "2025-11-27T11:12:23.000Z",
+      "contentLength": 169212,
+      "httpStatusCode": 200
+    }
+  },
+  {
+    "bucketId": "equipment-images",
+    "objectName": "equipment/1764241374574-wb44gos1lpl.jpg",
+    "outputFile": "storage-files\\equipment-images\\equipment\\1764241374574-wb44gos1lpl.jpg",
+    "size": 223855,
+    "metadata": {
+      "eTag": "\"a523db939533b84b133acec031b21ec3\"",
+      "size": 223855,
+      "mimetype": "image/jpeg",
+      "cacheControl": "max-age=3600",
+      "lastModified": "2025-11-27T11:02:58.000Z",
+      "contentLength": 223855,
+      "httpStatusCode": 200
+    }
+  },
+  {
+    "bucketId": "equipment-images",
+    "objectName": "equipment/1764241739606-gfhrevqb07c.jpg",
+    "outputFile": "storage-files\\equipment-images\\equipment\\1764241739606-gfhrevqb07c.jpg",
+    "size": 26783,
+    "metadata": {
+      "eTag": "\"dcc47df114badcad0627205816adc4e8\"",
+      "size": 26783,
+      "mimetype": "image/jpeg",
+      "cacheControl": "max-age=3600",
+      "lastModified": "2025-11-27T11:09:02.000Z",
+      "contentLength": 26783,
+      "httpStatusCode": 200
+    }
+  },
+  {
+    "bucketId": "equipment-images",
+    "objectName": "equipment/1764244677404-8nn16cssh4u.jpg",
+    "outputFile": "storage-files\\equipment-images\\equipment\\1764244677404-8nn16cssh4u.jpg",
+    "size": 136542,
+    "metadata": {
+      "eTag": "\"8a1b05e1ff35e773c2fa9dfbabf65f6a\"",
+      "size": 136542,
+      "mimetype": "image/jpeg",
+      "cacheControl": "max-age=3600",
+      "lastModified": "2025-11-27T11:58:00.000Z",
+      "contentLength": 136542,
+      "httpStatusCode": 200
+    }
+  },
+  {
+    "bucketId": "equipment-images",
+    "objectName": "equipment/1764241631620-y7kn90lbrph.webp",
+    "outputFile": "storage-files\\equipment-images\\equipment\\1764241631620-y7kn90lbrph.webp",
+    "size": 6922,
+    "metadata": {
+      "eTag": "\"f171f88fb4ed82ac7d4647b60c83255b\"",
+      "size": 6922,
+      "mimetype": "image/webp",
+      "cacheControl": "max-age=3600",
+      "lastModified": "2025-11-27T11:07:13.000Z",
+      "contentLength": 6922,
+      "httpStatusCode": 200
+    }
+  },
+  {
+    "bucketId": "equipment-images",
+    "objectName": "equipment/1764241543113-2x1mmlmrqsi.webp",
+    "outputFile": "storage-files\\equipment-images\\equipment\\1764241543113-2x1mmlmrqsi.webp",
+    "size": 15544,
+    "metadata": {
+      "eTag": "\"11852271acfeb8a2f1716a44fbf175d5\"",
+      "size": 15544,
+      "mimetype": "image/webp",
+      "cacheControl": "max-age=3600",
+      "lastModified": "2025-11-27T11:05:45.000Z",
+      "contentLength": 15544,
+      "httpStatusCode": 200
+    }
+  }
+]

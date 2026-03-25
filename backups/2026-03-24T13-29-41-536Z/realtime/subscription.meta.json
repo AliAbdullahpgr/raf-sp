@@ -1,0 +1,76 @@
+{
+  "schema": "realtime",
+  "table": "subscription",
+  "kind": "table",
+  "rowCount": "0",
+  "primaryKeyColumns": [
+    "id"
+  ],
+  "columns": [
+    {
+      "column_name": "id",
+      "data_type": "bigint",
+      "udt_name": "int8",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "column_name": "subscription_id",
+      "data_type": "uuid",
+      "udt_name": "uuid",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 2
+    },
+    {
+      "column_name": "entity",
+      "data_type": "regclass",
+      "udt_name": "regclass",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 4
+    },
+    {
+      "column_name": "filters",
+      "data_type": "ARRAY",
+      "udt_name": "_user_defined_filter",
+      "is_nullable": "NO",
+      "column_default": "'{}'::realtime.user_defined_filter[]",
+      "ordinal_position": 5
+    },
+    {
+      "column_name": "claims",
+      "data_type": "jsonb",
+      "udt_name": "jsonb",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 7
+    },
+    {
+      "column_name": "claims_role",
+      "data_type": "regrole",
+      "udt_name": "regrole",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 8
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp without time zone",
+      "udt_name": "timestamp",
+      "is_nullable": "NO",
+      "column_default": "timezone('utc'::text, now())",
+      "ordinal_position": 9
+    },
+    {
+      "column_name": "action_filter",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "YES",
+      "column_default": "'*'::text",
+      "ordinal_position": 10
+    }
+  ],
+  "dataFile": "realtime\\subscription.json"
+}

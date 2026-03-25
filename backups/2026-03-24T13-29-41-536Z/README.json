@@ -1,0 +1,13 @@
+{
+  "note": "This backup contains table data in JSON plus database metadata. It is not a pg_dump SQL archive.",
+  "coverage": [
+    "All non-system schemas and tables visible to the configured database user",
+    "Per-table rows exported in JSON format",
+    "Columns, primary keys, indexes, foreign keys, policies, routines, views, extensions, and sequences metadata"
+  ],
+  "limits": [
+    "This backup does not produce a native pg_dump SQL file",
+    "Large tables are exported in paged JSON batches to reduce memory pressure, but restore must be custom",
+    "Supabase Storage object files are not included because they are not stored in Postgres table rows"
+  ]
+}

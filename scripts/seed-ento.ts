@@ -56,16 +56,26 @@ const ensureTables = async () => {
       id SERIAL PRIMARY KEY,
       item_no INTEGER NOT NULL,
       name TEXT NOT NULL,
+      type TEXT,
       quantity_label TEXT,
       date_received DATE,
       last_verified DATE,
       last_verification_label TEXT,
       register_label TEXT,
       source_line TEXT,
+      status TEXT NOT NULL DEFAULT 'AVAILABLE',
+      department_id TEXT REFERENCES "Department"(id) ON DELETE CASCADE,
       created_at TIMESTAMPTZ DEFAULT NOW(),
       updated_at TIMESTAMPTZ DEFAULT NOW()
     );
   `);
+
+  // Add new columns if table already exists (for existing installs)
+  await pool.query(`ALTER TABLE ento_inventory_items ADD COLUMN IF NOT EXISTS type TEXT;`);
+  await pool.query(`ALTER TABLE ento_inventory_items ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'AVAILABLE';`);
+  await pool.query(`ALTER TABLE ento_inventory_items ADD COLUMN IF NOT EXISTS department_id TEXT REFERENCES "Department"(id) ON DELETE CASCADE;`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS ento_inventory_department_id_idx ON ento_inventory_items (department_id);`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS ento_inventory_status_idx ON ento_inventory_items (status);`);
 
   await pool.query(`CREATE INDEX IF NOT EXISTS ento_inventory_item_no_idx ON ento_inventory_items (item_no);`);
   await pool.query(`CREATE INDEX IF NOT EXISTS ento_inventory_date_received_idx ON ento_inventory_items (date_received);`);
@@ -187,19 +197,23 @@ const seedItems = async () => {
           INSERT INTO ento_inventory_items (
             item_no,
             name,
+            type,
             quantity_label,
             date_received,
             last_verified,
             last_verification_label,
             register_label,
             source_line,
+            status,
+            department_id,
             updated_at
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW());
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'AVAILABLE', 'erss', NOW());
         `,
         [
           item.itemNo,
           item.name,
+          "equipment",
           item.quantityLabel,
           item.dateReceived,
           item.lastVerification,

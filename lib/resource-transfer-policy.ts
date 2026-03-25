@@ -159,6 +159,8 @@ export function getResourceTransferability(
         : blockedTemporaryOnly();
     case "AgriEngineeringMultanRegionData":
       return exactType(resource.type, ["farm machinery"]);
+    case "EntoInventoryItems":
+      return isClearlyExcluded(resource) ? blockedTemporaryOnly() : { allowed: true };
     case "AgronomyLabEquipment":
       return isClearlyExcluded(resource) ? blockedTemporaryOnly() : { allowed: true };
     case "FoodAnalysisLabEquipment":

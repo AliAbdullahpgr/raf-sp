@@ -1,0 +1,5 @@
+[
+{"id":"14cb4a60-261a-487b-9a8e-bc30df239946","checksum":"f93518ade17c8ff0cc6208b75d34c7d9a2a8800b6fde29eb2013e9e2544a2955","finished_at":"2025-12-14T20:00:09.004Z","migration_name":"20251214183353_init_schema","logs":null,"rolled_back_at":null,"started_at":"2025-12-14T20:00:07.810Z","applied_steps_count":1},
+{"id":"c72ce1dc-1941-424e-9416-25a656a8a61f","checksum":"4a6862a0d2477d863d47a4dc7222e622418302ad0990bcb8e2556a8466368e7e","finished_at":"2025-12-26T13:25:13.636Z","migration_name":"20251221173000_add_adaptive_research_positions","logs":null,"rolled_back_at":null,"started_at":"2025-12-26T13:25:13.636Z","applied_steps_count":1},
+{"id":"ce61e829-f977-4f4f-8424-ec4f1b4f0c85","checksum":"962ce3303359f1785ecb07d81635f06bb3273db977087c99f577c079a293102e","finished_at":"2025-12-14T20:00:10.312Z","migration_name":"20251214192841_add_agricultural_extension_wing","logs":null,"rolled_back_at":null,"started_at":"2025-12-14T20:00:09.371Z","applied_steps_count":1}
+]

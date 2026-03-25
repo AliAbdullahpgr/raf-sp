@@ -1,0 +1,44 @@
+{
+  "schema": "public",
+  "table": "VisitorCounter",
+  "kind": "table",
+  "rowCount": "1",
+  "primaryKeyColumns": [
+    "id"
+  ],
+  "columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": "gen_random_uuid()",
+      "ordinal_position": 1
+    },
+    {
+      "column_name": "count",
+      "data_type": "integer",
+      "udt_name": "int4",
+      "is_nullable": "NO",
+      "column_default": "0",
+      "ordinal_position": 2
+    },
+    {
+      "column_name": "createdAt",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 3
+    },
+    {
+      "column_name": "updatedAt",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 4
+    }
+  ],
+  "dataFile": "public\\VisitorCounter.json"
+}

@@ -1304,7 +1304,7 @@ function toAvailableResource(resource: TransferableResourceRecord) {
   return {
     id: resource.id,
     name: resource.name,
-    type: resource.type ?? "Unknown",
+    type: resource.category ?? resource.type ?? "Unknown",
   };
 }
 
@@ -1476,6 +1476,26 @@ async function getResourceRecordById(
           status: true,
         },
       });
+    case "EntoInventoryItems": {
+      const entoItem = await prisma.ento_inventory_items.findUnique({
+        where: { id: parseInt(resourceId, 10) },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          department_id: true,
+          status: true,
+        },
+      });
+      if (!entoItem) return null;
+      return {
+        id: String(entoItem.id),
+        name: entoItem.name,
+        type: entoItem.type ?? null,
+        departmentId: entoItem.department_id ?? "",
+        status: entoItem.status,
+      };
+    }
     case "RAEDCEquipment":
       return prisma.rAEDCEquipment.findUnique({
         where: { id: resourceId },
@@ -1666,6 +1686,25 @@ async function getAvailableResourceRecords(
           status: true,
         },
       });
+    case "EntoInventoryItems": {
+      const entoItems = await prisma.ento_inventory_items.findMany({
+        where: { department_id: departmentId, status: EquipmentStatus.AVAILABLE },
+        select: {
+          id: true,
+          name: true,
+          type: true,
+          department_id: true,
+          status: true,
+        },
+      });
+      return entoItems.map((item) => ({
+        id: String(item.id),
+        name: item.name,
+        type: item.type ?? null,
+        departmentId: item.department_id ?? departmentId,
+        status: item.status,
+      }));
+    }
     case "RAEDCEquipment":
     case "AgriculturalExtensionWing":
       return [];
@@ -1802,6 +1841,12 @@ async function updateResourceStatus(
       case "AgriEngineeringMultanRegionData":
         await prisma.agriEngineeringMultanRegionData.update({
           where: { id: resourceId },
+          data: { status },
+        });
+        break;
+      case "EntoInventoryItems":
+        await prisma.ento_inventory_items.update({
+          where: { id: parseInt(resourceId, 10) },
           data: { status },
         });
         break;

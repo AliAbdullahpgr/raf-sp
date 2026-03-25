@@ -61,6 +61,7 @@ model Department {
   soilWaterTestingProject         SoilWaterTestingProject[]
   users                           User[]
   valueAdditionLabEquipment       ValueAdditionLabEquipment[]
+  entoInventoryItems              ento_inventory_items[]
 
   // Resource Request relations
   outgoingRequests ResourceRequest[] @relation("RequestingDept")
@@ -443,20 +444,26 @@ model VisitorCounter {
 }
 
 model ento_inventory_items {
-  id                      Int       @id @default(autoincrement())
+  id                      Int              @id @default(autoincrement())
   item_no                 Int
   name                    String
+  type                    String?
   quantity_label          String?
-  date_received           DateTime? @db.Date
-  last_verified           DateTime? @db.Date
+  date_received           DateTime?        @db.Date
+  last_verified           DateTime?        @db.Date
   last_verification_label String?
   register_label          String?
   source_line             String?
-  created_at              DateTime? @default(now()) @db.Timestamptz(6)
-  updated_at              DateTime? @default(now()) @db.Timestamptz(6)
+  status                  EquipmentStatus  @default(AVAILABLE)
+  department_id           String?
+  department              Department?      @relation(fields: [department_id], references: [id], onDelete: Cascade)
+  created_at              DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime?        @default(now()) @db.Timestamptz(6)
 
   @@index([date_received], map: "ento_inventory_date_received_idx")
   @@index([item_no], map: "ento_inventory_item_no_idx")
+  @@index([department_id])
+  @@index([status])
 }
 
 model ento_profile {

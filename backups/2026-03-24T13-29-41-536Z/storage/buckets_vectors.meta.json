@@ -1,0 +1,44 @@
+{
+  "schema": "storage",
+  "table": "buckets_vectors",
+  "kind": "table",
+  "rowCount": "0",
+  "primaryKeyColumns": [
+    "id"
+  ],
+  "columns": [
+    {
+      "column_name": "id",
+      "data_type": "text",
+      "udt_name": "text",
+      "is_nullable": "NO",
+      "column_default": null,
+      "ordinal_position": 1
+    },
+    {
+      "column_name": "type",
+      "data_type": "USER-DEFINED",
+      "udt_name": "buckettype",
+      "is_nullable": "NO",
+      "column_default": "'VECTOR'::storage.buckettype",
+      "ordinal_position": 2
+    },
+    {
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 3
+    },
+    {
+      "column_name": "updated_at",
+      "data_type": "timestamp with time zone",
+      "udt_name": "timestamptz",
+      "is_nullable": "NO",
+      "column_default": "now()",
+      "ordinal_position": 4
+    }
+  ],
+  "dataFile": "storage\\buckets_vectors.json"
+}
