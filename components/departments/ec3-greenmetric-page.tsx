@@ -13,8 +13,6 @@ import {
   CheckCircle2,
   TrendingUp,
   BarChart3,
-  Award,
-  ArrowRight,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -215,16 +213,6 @@ export function EC3GreenMetricPage() {
                   MNS University of Agriculture, Multan operates <strong>six renewable energy systems</strong> with a combined annual output of 794,895 kWh — qualifying for full GreenMetric marks.
                 </motion.p>
 
-                {/* Focal person */}
-                <motion.div variants={itemVariants} className="inline-flex items-center gap-3 rounded-xl border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-3 backdrop-blur-sm">
-                  <div className="w-9 h-9 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
-                    <Award className="w-4 h-4 text-secondary" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm">Mr. Israr Hussain</div>
-                    <div className="text-xs opacity-70">UI GreenMetric Governance &amp; Digitalization Committee</div>
-                  </div>
-                </motion.div>
               </div>
 
               {/* Hero image */}
@@ -579,10 +567,7 @@ export function EC3GreenMetricPage() {
       {/* ── FOOTER BAND ───────────────────────────────────────────────────── */}
       <div className="bg-muted/30 border-t border-border py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-          <div>
-            <span className="font-semibold text-foreground">Mr. Israr Hussain</span>
-            {" — "}UI GreenMetric Governance &amp; Digitalization Committee · MNS University of Agriculture, Multan · May 2026
-          </div>
+          <div>MNS University of Agriculture, Multan · May 2026</div>
           <Badge variant="outline" className="border-primary/30 text-primary">
             EC3 · GreenMetric 2026
           </Badge>
