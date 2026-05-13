@@ -176,6 +176,32 @@ const allDepartments = [
     phone: "",
     email: "",
   },
+  {
+    id: "ec3-greenmetric",
+    name: "EC3 — Renewable Energy Sources on Campus",
+    location: "MNS University of Agriculture, Multan",
+    description:
+      "UI GreenMetric 2026 evidence submission documenting six active renewable energy systems with a combined output of ~794,895 kWh/year across the university campus.",
+    image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&q=80",
+    hasData: true,
+    focalPerson: "Mr. Israr Hussain",
+    designation: "UI GreenMetric Governance & Digitalization Committee",
+    phone: "+92-61-9210071",
+    email: "info@mnsuam.edu.pk",
+  },
+  {
+    id: "ec5-greenmetric",
+    name: "EC5 — Renewable Energy Ratio",
+    location: "MNS University of Agriculture, Multan",
+    description:
+      "UI GreenMetric 2026 evidence submission demonstrating 66–79% renewable energy share of total campus consumption — exceeding the 50% threshold for full marks.",
+    image: "https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=800&q=80",
+    hasData: true,
+    focalPerson: "Mr. Israr Hussain",
+    designation: "UI GreenMetric Governance & Digitalization Committee",
+    phone: "+92-61-9210071",
+    email: "info@mnsuam.edu.pk",
+  },
 ];
 
 const departments = allDepartments;

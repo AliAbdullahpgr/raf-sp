@@ -21,6 +21,8 @@ import { PestPage } from "@/components/departments/pest-page";
 import { RAEDCPage } from "@/components/departments/raedc-page";
 import { AgriEngPage } from "@/components/departments/agri-eng";
 import { ARCPage } from "@/components/departments/arc-page";
+import { EC3GreenMetricPage } from "@/components/departments/ec3-greenmetric-page";
+import { EC5GreenMetricPage } from "@/components/departments/ec5-greenmetric-page";
 
 const departmentPages: Record<string, React.ComponentType> = {
   mnsuam: MNSUAMPage,
@@ -37,6 +39,8 @@ const departmentPages: Record<string, React.ComponentType> = {
   adp: ARCPage,
   arc: ARCPage,
   "agri-eng": AgriEngPage,
+  "ec3-greenmetric": EC3GreenMetricPage,
+  "ec5-greenmetric": EC5GreenMetricPage,
 };
 
 export default function DepartmentPage() {
