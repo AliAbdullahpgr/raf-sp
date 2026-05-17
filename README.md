@@ -1,305 +1,247 @@
-# RAF-SP Platform - Regional Agriculture Facilities South Punjab
+# RAF-SP Platform
 
-A comprehensive web-based asset management and resource tracking system designed for managing agriculture departments across South Punjab, Pakistan. The platform enables multiple agricultural research institutes, laboratories, and departments to efficiently manage their equipment inventory, track maintenance activities, and visualize asset data through role-based dashboards.
+**Regional Agriculture Facilities — South Punjab**
 
-## 🌾 Overview
+An enterprise-grade, government-deployed asset management and resource intelligence platform purpose-built for the Agriculture Department of South Punjab, Pakistan. RAF-SP consolidates the operational footprint of fifteen autonomous research institutes, testing laboratories, mechanization centers, and university faculties into a single, authoritative system of record — replacing fragmented spreadsheets, paper registers, and siloed departmental archives with a unified, role-aware digital backbone.
 
-RAF-SP (Repair & Facility - Smart Platform) is a specialized government agriculture management system that consolidates and digitizes asset information from various agricultural departments across South Punjab. The system serves as a centralized platform for:
+The platform is engineered for the realities of public-sector agriculture: heterogeneous asset classes, multi-department governance, intermittent connectivity, and the need for verifiable, auditable data. It is currently in production and serves as the canonical source for equipment inventory, machinery status, laboratory capacity, human resource allocation, and infrastructure records across the region.
 
-- **15+ Agricultural Departments** including research institutes, testing laboratories, and university facilities
-- **Equipment & Asset Tracking** for agricultural machinery, laboratory equipment, and research facilities
-- **Resource Management** for staff, infrastructure, and departmental resources
-- **Real-time Analytics** with interactive dashboards and data visualization
-
-### Live Demo
-🔗 **[https://raf-sp.vercel.app](https://raf-sp.vercel.app)**
+**Production deployment:** https://raf-sp.vercel.app
 
 ---
 
-## 🏛️ Participating Departments
+## Strategic Value
 
-The platform manages data for the following agriculture departments in South Punjab:
+RAF-SP delivers measurable institutional impact across four dimensions:
 
-1. **Mango Research Institute (MRI)** - Mango cultivation and post-harvest research
-2. **Cotton Research Institute (CRI)** - Cotton variety development and pest management
-3. **Adaptive Research Center (ARC)** - Agricultural research and development
-4. **Entomological Research Sub-Station (ERSS)** - Pest control and entomology research
-5. **Agricultural Engineering** - Farm mechanization and engineering solutions
-6. **Agricultural Extension Wing** - Farmer outreach and extension services
-7. **Agricultural Mechanization Research Institute (AMRI)** - Farm machinery research
-8. **Floriculture Research Institute** - Ornamental plants and landscaping research
-9. **Regional Agricultural Research Institute (RARI)** - Regional agricultural research
-10. **Regional Agricultural Economic Development Centre (RAEDC)** - Training and capacity building
-11. **Pesticide Quality Control Laboratory** - Pesticide testing and quality assurance
-12. **Soil & Water Testing Laboratory** - Soil and water analysis services
-13. **Food Science & Technology Department (Muhammad Nawaz Shareef University of Agriculture)** - Food processing research
-14. **Agronomy Department (Muhammad Nawaz Shareef University of Agriculture)** - Crop production and soil management
-15. **Muhammad Nawaz Shareef University of Agriculture Estate** - University farm management
+- **Operational visibility.** Department heads and provincial administrators gain a real-time, status-accurate view of every tracked asset — from cotton-ginning machinery to spectrophotometers to research vehicles — eliminating the lag between ground-truth and reported state.
+- **Accountability and auditability.** Every asset record, status transition, and maintenance event is attributed, timestamped, and traceable to a specific department and role, supporting both internal audits and external compliance reviews.
+- **Decision support.** Aggregated analytics, status distributions, and utilization trends are surfaced through interactive dashboards, enabling evidence-based budgeting, procurement, and capacity-planning decisions.
+- **Institutional continuity.** By codifying departmental inventories into a durable, queryable system, the platform protects against knowledge loss during staff transitions and creates a permanent operational record for the department.
 
 ---
 
-## ✨ Key Features
+## Participating Institutions
 
-### 🔐 Authentication & Authorization
-- Secure NextAuth v5 authentication system
-- Role-based access control (ADMIN, DEPT_HEAD)
-- Department-specific user accounts with unique credentials
-- Protected routes and API endpoints
+The platform is the official asset registry for the following fifteen entities:
 
-### 📊 Department Dashboards
-- **Customized Dashboards** for each department type
-- **Real-time Statistics** on equipment status and inventory
-- **Interactive Charts** using Recharts for data visualization
-- **Equipment Status Tracking** (Available, In Use, Needs Repair, Discarded)
-- **Maintenance History** and repair logs
+1. Mango Research Institute (MRI)
+2. Cotton Research Institute (CRI)
+3. Adaptive Research Center (ARC)
+4. Entomological Research Sub-Station (ERSS)
+5. Agricultural Engineering
+6. Agricultural Extension Wing
+7. Agricultural Mechanization Research Institute (AMRI)
+8. Floriculture Research Institute
+9. Regional Agricultural Research Institute (RARI)
+10. Regional Agricultural Economic Development Centre (RAEDC)
+11. Pesticide Quality Control Laboratory
+12. Soil & Water Testing Laboratory
+13. Food Science & Technology Department, MNS University of Agriculture
+14. Agronomy Department, MNS University of Agriculture
+15. MNS University of Agriculture Estate
 
-### 🔧 Asset Management
-- Comprehensive equipment inventory tracking
-- Machinery status monitoring (Functional/Non-functional)
-- Laboratory equipment and infrastructure management
-- Human resource tracking (staff positions and scales)
-- Building and facility documentation
-
-### 📈 Analytics & Reporting
-- Visual analytics with pie charts, bar graphs, and trend analysis
-- Equipment utilization statistics
-- Status-based filtering and sorting
-- Export capabilities for reports
-
-### 📁 Bulk Data Import
-- CSV file upload for equipment data
-- PDF parsing for document-based data entry
-- Automated data processing and validation
-
-### 🎨 Modern UI/UX
-- Government-themed landing page
-- Responsive design for all devices
-- Clean, professional interface using Shadcn UI components
-- Smooth animations with Framer Motion
-- Accessible and user-friendly navigation
+Each institution operates within its own data partition, with department-specific dashboards, schemas, and workflows tuned to its asset profile — while remaining fully visible to provincial-level administrators through the unified admin console.
 
 ---
 
-## 🛠️ Technology Stack
+## Platform Capabilities
 
-### Frontend
-- **Framework:** Next.js 16 (React 19)
-- **Styling:** Tailwind CSS with custom government theme
-- **UI Components:** Shadcn UI, Radix UI
-- **Animations:** Framer Motion
-- **Charts:** Recharts
-- **Forms:** React Hook Form with Zod validation
-- **State Management:** TanStack React Query
+### Authentication and Access Control
 
-### Backend
-- **Runtime:** Node.js
-- **Framework:** Next.js API Routes
-- **Authentication:** NextAuth v5
-- **ORM:** Prisma
-- **Database:** PostgreSQL (via Supabase)
-- **File Parsing:** PapaParse (CSV), pdf-parse (PDF)
+- Production-grade authentication built on NextAuth v5 with secure session management.
+- Two-tier role model — `ADMIN` for provincial oversight and `DEPT_HEAD` for departmental administration — with strict route-level and API-level enforcement.
+- Per-department credentialing with isolated data scope; no department can read or mutate another's records.
+- Defense-in-depth protections on every server action and API endpoint.
+
+### Department-Specific Dashboards
+
+- Bespoke dashboards for each department class — research institutes, testing laboratories, mechanization centers, and university faculties — reflecting the distinct asset taxonomies of each.
+- Live status indicators across the canonical asset states: Available, In Use, Needs Repair, Discarded, Functional, Non-Functional.
+- Drill-down views from aggregate KPIs to individual asset records.
+- Interactive visualizations powered by Recharts, including status distributions, trend analyses, and comparative breakdowns.
+
+### Asset and Resource Management
+
+- Comprehensive equipment, machinery, and infrastructure inventories with full lifecycle tracking.
+- Laboratory instrumentation, research equipment, and mechanization fleet management.
+- Human resource records including positions, pay scales, and departmental allocations.
+- Building, facility, and land-asset documentation.
+
+### Data Ingestion
+
+- CSV bulk-upload pipeline with schema validation, powered by PapaParse.
+- PDF parsing for legacy document-based records.
+- Programmatic seeding scripts for every department, supporting reproducible deployments and disaster recovery.
+
+### Analytics and Reporting
+
+- Real-time aggregation across departments and asset classes.
+- Status-based filtering, sorting, and export.
+- Visual analytics suitable for executive briefings and inter-departmental review.
+
+### User Experience
+
+- Government-themed, accessibility-conscious interface built on Shadcn UI and Radix primitives.
+- Fully responsive across desktop, tablet, and mobile form factors.
+- Motion design via Framer Motion for clarity, not decoration.
+- Consistent visual language across all departmental contexts.
+
+---
+
+## Technology Stack
+
+### Application Layer
+
+- **Framework:** Next.js 16 with React 19, leveraging the App Router, Server Components, and Server Actions.
+- **Language:** TypeScript end-to-end.
+- **Styling:** Tailwind CSS with a custom government design system.
+- **Component library:** Shadcn UI and Radix UI primitives.
+- **Forms and validation:** React Hook Form with Zod schemas, shared between client and server.
+- **Data fetching:** TanStack Query for client-side state and caching.
+- **Visualization:** Recharts.
+- **Motion:** Framer Motion.
+
+### Data Layer
+
+- **Database:** PostgreSQL, hosted on Supabase.
+- **ORM:** Prisma 6 with the Postgres adapter and connection pooling.
+- **Authentication store:** Prisma adapter for NextAuth.
+- **Document and email:** Resend for transactional mail; pdf-parse and PapaParse for ingestion.
 
 ### Infrastructure
-- **Hosting:** Vercel
-- **Database:** Supabase (PostgreSQL)
-- **Version Control:** Git/GitHub
-- **Package Manager:** npm
+
+- **Hosting:** Vercel edge deployment with automatic preview environments.
+- **Database hosting:** Supabase (managed PostgreSQL).
+- **CI/CD:** GitHub-integrated automatic deploys.
+- **Testing:** Vitest with React Testing Library and jsdom.
 
 ---
 
-## 📋 Prerequisites
-
-Before setting up the project, ensure you have:
+## Prerequisites
 
 - Node.js 18.x or higher
-- npm or yarn package manager
-- PostgreSQL database (or Supabase account)
-- Git for version control
+- npm 9 or higher
+- PostgreSQL 14+ instance (Supabase recommended)
+- Git
 
 ---
 
-## 🚀 Installation & Setup
+## Local Setup
 
-### 1. Clone the Repository
+### 1. Clone
 
 ```bash
 git clone https://github.com/AliAbdullahpgr/raf-sp.git
 cd raf-sp
 ```
 
-### 2. Install Dependencies
+### 2. Install
 
 ```bash
 npm install
 ```
 
-### 3. Environment Configuration
+### 3. Configure environment
 
-Create a `.env.local` file in the root directory:
+Create `.env.local` in the project root:
 
 ```env
-# Database Configuration
 DATABASE_URL="postgresql://user:password@host:port/database"
-
-# NextAuth Configuration
-AUTH_SECRET="your-auth-secret-key-here"
+AUTH_SECRET="your-auth-secret-key"
 NEXTAUTH_URL="http://localhost:3000"
 
-# Supabase Configuration (Optional)
 NEXT_PUBLIC_SUPABASE_URL="your-supabase-url"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
 ```
 
-### 4. Database Setup
+Generate a strong `AUTH_SECRET` with `openssl rand -base64 32`.
 
-Generate Prisma client and run migrations:
+### 4. Provision the database
 
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
-### 5. Seed Department Data
-
-The platform includes seeding scripts for all departments:
+### 5. Seed departmental data
 
 ```bash
-# Seed all departments
 npm run seed
-
-# Or seed specific departments
-npm run seed:ento
-ts-node scripts/seed-mri.ts
-ts-node scripts/seed-cri.ts
-ts-node scripts/seed-amri.ts
-# ... and so on for other departments
 ```
 
-### 6. Create Admin Account
+Department-specific seeders are available under `scripts/seed-*.ts` for granular provisioning.
 
-Run the admin creation SQL script in your database:
+### 6. Provision the administrator account
 
-```sql
--- See create-admin.sql for full script
-```
+Execute `create-admin.sql` against the target database.
 
-### 7. Start Development Server
+### 7. Run the development server
 
 ```bash
 npm run dev
 ```
 
-Visit `http://localhost:3000` to access the application.
+The application is then available at `http://localhost:3000`.
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 raf-sp/
-├── actions/              # Server actions for data mutations
-├── app/                  # Next.js 14 app directory
-│   ├── (auth)/          # Authentication routes
-│   ├── admin/           # Admin dashboard
-│   ├── department/      # Department-specific pages
-│   └── api/             # API routes
-├── components/           # React components
-│   ├── departments/     # Department-specific components
-│   ├── ui/              # Reusable UI components
-│   └── ...
-├── lib/                 # Utility functions and configurations
-│   ├── data/            # Static data files
-│   └── ...
-├── prisma/              # Database schema and migrations
-│   └── schema.prisma
-├── scripts/             # Database seeding scripts
-│   ├── seed-*.ts        # Department-specific seeders
-│   └── ...
-├── public/              # Static assets (images, logos)
-├── types/               # TypeScript type definitions
-└── ...
+├── actions/              Server actions for data mutations
+├── app/                  Next.js App Router
+│   ├── (auth)/           Authentication flows
+│   ├── admin/            Provincial administration console
+│   ├── department/       Department-scoped dashboards
+│   └── api/              API endpoints
+├── components/
+│   ├── departments/      Department-specific components
+│   └── ui/               Shared UI primitives
+├── lib/
+│   └── data/             Static reference data
+├── prisma/
+│   └── schema.prisma     Authoritative data model
+├── scripts/              Seeders and operational scripts
+├── public/               Static assets
+└── types/                Shared TypeScript definitions
 ```
 
 ---
 
-## 🔑 Department Login Credentials
+## Credentials and Department Access
 
-Each department has dedicated login credentials. See `DEPARTMENT_LOGIN_CREDENTIALS.md` for complete details.
-
-**Default Password:** `ChangeMe123!` (All departments - to be changed on first login)
-
-**Sample Logins:**
-- **MRI:** abidhameedkhan@yahoo.com
-- **CRI:** dircrimm@gmail.com
-- **AMRI:** focalperson@amri.gov.pk
-- **Admin:** admin@raf-sp.gov.pk
-
-*Note: Change all default passwords in production.*
+Each participating department is provisioned with a dedicated account. The complete credential matrix is documented in `DEPARTMENT_LOGIN_CREDENTIALS.md`. All accounts ship with the default password `ChangeMe123!`, which must be rotated on first login. Production deployments must replace all default credentials before going live.
 
 ---
 
-## 📱 Features by Department Type
-
-### Research Institutes (MRI, CRI, RARI, etc.)
-- Research equipment tracking
-- Project management
-- Staff and researcher details
-- Publication records
-
-### Testing Laboratories (Pesticide QC, Soil & Water)
-- Lab equipment inventory
-- Testing capacity tracking
-- Quality control records
-- Sample processing management
-
-### Universities (MNSUAM Departments)
-- Academic equipment tracking
-- Laboratory management
-- Student resource allocation
-- Faculty details
-
-### Mechanization Centers (AMRI)
-- Farm machinery inventory
-- Functional status monitoring
-- Maintenance schedules
-- Equipment specifications
-
----
-
-## 🔧 Available Scripts
+## Operational Scripts
 
 ```bash
-# Development
-npm run dev          # Start development server
-
-# Building
-npm run build        # Build for production
-npm run start        # Start production server
-
-# Code Quality
-npm run lint         # Run ESLint
-
-# Testing
-npm run test         # Run tests
-npm run test:watch   # Run tests in watch mode
-
-# Database
-npm run seed         # Seed all department data
-npm run seed:ento    # Seed entomology data
+npm run dev               Start the development server
+npm run build             Build the production bundle
+npm run start             Start the production server
+npm run lint              Static analysis
+npm run test              Run the test suite
+npm run test:watch        Run tests in watch mode
+npm run seed              Seed all departments
+npm run seed:ento         Seed entomology data
+npm run audit:duplicates  Audit duplicate departmental records
 ```
 
 ---
 
-## 🌐 Deployment
+## Deployment
 
-The application is optimized for deployment on Vercel:
+The platform is optimized for Vercel and ships with zero-configuration deployment:
 
-1. Push your code to GitHub
-2. Import the repository in Vercel
-3. Configure environment variables
-4. Deploy
+1. Push to the connected GitHub repository.
+2. Vercel builds and deploys automatically.
+3. Environment variables are managed through the Vercel dashboard.
+4. Preview deployments are issued per pull request.
 
-For manual deployment:
+For self-hosted environments:
 
 ```bash
 npm run build
@@ -308,49 +250,48 @@ npm run start
 
 ---
 
-## 📚 Documentation
+## Documentation
 
-- **Setup Guide:** See `SUPABASE_SETUP.md` for database configuration
-- **Login Credentials:** See `DEPARTMENT_LOGIN_CREDENTIALS.md`
-- **API Documentation:** Available in `/app/api` directory
-- **Component Docs:** JSDoc comments in component files
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+- `SUPABASE_SETUP.md` — database provisioning and connection guidance.
+- `DEPARTMENT_LOGIN_CREDENTIALS.md` — full credential matrix.
+- `prisma/schema.prisma` — authoritative data model.
+- Inline JSDoc and TypeScript annotations across the codebase.
 
 ---
 
-## 📄 License
+## Contributing
 
-This project is developed for the Agriculture Department of South Punjab, Pakistan. All rights reserved.
+Contributions from departmental staff, technical partners, and the broader community are welcome.
 
----
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit with clear, descriptive messages.
+4. Open a pull request against `main`.
 
-## 👥 Contact & Support
-
-For issues, questions, or support:
-
-- **Project Repository:** [https://github.com/AliAbdullahpgr/raf-sp](https://github.com/AliAbdullahpgr/raf-sp)
-- **Issues:** [GitHub Issues](https://github.com/AliAbdullahpgr/raf-sp/issues)
+All changes are subject to review and must pass the automated test and lint pipelines.
 
 ---
 
-## 🙏 Acknowledgments
+## License and Ownership
+
+This software is developed for and operated by the Agriculture Department of the Government of Punjab, Pakistan. All rights reserved.
+
+---
+
+## Contact
+
+- **Repository:** https://github.com/AliAbdullahpgr/raf-sp
+- **Issue tracker:** https://github.com/AliAbdullahpgr/raf-sp/issues
+
+---
+
+## Acknowledgments
 
 - Agriculture Department, Government of Punjab
-- MNS University of Agriculture, Multan
-- All participating research institutes and laboratories
-- Development team and contributors
+- Muhammad Nawaz Shareef University of Agriculture, Multan
+- All participating research institutes, laboratories, and university faculties
+- The engineering and operations team behind RAF-SP
 
 ---
 
-**Built with ❤️ for South Punjab Agriculture Development**
+Built for the institutions advancing agricultural research, productivity, and food security in South Punjab.
