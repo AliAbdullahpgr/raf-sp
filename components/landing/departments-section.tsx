@@ -202,6 +202,19 @@ const allDepartments = [
     phone: "+92-61-9210071",
     email: "info@mnsuam.edu.pk",
   },
+  {
+    id: "gd6-wifi-ict",
+    name: "GD6 — ICT for Sustainability Monitoring",
+    location: "MNS University of Agriculture, Multan",
+    description:
+      "UI GreenMetric 2026 evidence submission documenting an enterprise-grade campus Wi-Fi network — Cisco 3500 WLC, 96 access points, 6 role-based WLANs, and ~1,348 concurrent users enabling a paperless, data-driven campus.",
+    image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80",
+    hasData: true,
+    focalPerson: "",
+    designation: "",
+    phone: "",
+    email: "",
+  },
 ];
 
 const departments = allDepartments;
