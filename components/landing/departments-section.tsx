@@ -215,6 +215,19 @@ const allDepartments = [
     phone: "",
     email: "",
   },
+  {
+    id: "ncg-sbcas",
+    name: "NCG & SBCAS",
+    location: "",
+    description: "",
+    image: "/images/ncg-sbcas.png",
+    hasData: true,
+    externalUrl: "https://extractor-ncgsbcas.vercel.app",
+    focalPerson: "",
+    designation: "",
+    phone: "",
+    email: "",
+  },
 ];
 
 const departments = allDepartments;
@@ -303,7 +316,10 @@ export function DepartmentsSection() {
             {departments.map((department, index) => (
               <Link
                 key={department.id}
-                href={`/departments/${department.id}`}
+                href={department.externalUrl ?? `/departments/${department.id}`}
+                {...(department.externalUrl
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
                 className="block"
               >
                 <motion.div
