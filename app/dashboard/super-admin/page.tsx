@@ -661,9 +661,6 @@ export default function SuperAdminDashboard() {
         <SuperAdminAnalytics
           resourceTotals={data.resourceTotals}
           requestTotals={data.requestTotals}
-          totalPublicViews={derived.totalPublicViews}
-          totalAdminViews={derived.totalAdminViews}
-          strongestDepartments={derived.strongestDepartments}
         />
       </section>
 

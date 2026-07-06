@@ -14,7 +14,7 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import { Activity, BarChart3, PieChart as PieChartIcon } from "lucide-react";
+import { Activity, PieChart as PieChartIcon } from "lucide-react";
 
 type ResourceTotals = {
     total: number;
@@ -37,9 +37,6 @@ type RequestTotals = {
 type SuperAdminAnalyticsProps = {
     resourceTotals: ResourceTotals;
     requestTotals: RequestTotals;
-    totalPublicViews: number;
-    totalAdminViews: number;
-    strongestDepartments: Array<{ name: string; resources: { total: number } }>;
 };
 
 const RESOURCE_COLORS = ["#2678E7", "#10b981", "#f97316", "#ef4444"];
@@ -56,9 +53,6 @@ function chartTooltipFormatter(value: number | string, name: string) {
 export function SuperAdminAnalytics({
     resourceTotals,
     requestTotals,
-    totalPublicViews,
-    totalAdminViews,
-    strongestDepartments,
 }: SuperAdminAnalyticsProps) {
     const resourceData = [
         { name: "Available", value: resourceTotals.available },
@@ -76,16 +70,10 @@ export function SuperAdminAnalytics({
         { name: "Closed", value: requestTotals.rejected + requestTotals.expired },
     ];
 
-    const departmentData = strongestDepartments.slice(0, 6).map((department) => ({
-        name: department.name,
-        total: department.resources.total,
-    }));
-
-    const totalTraffic = totalPublicViews + totalAdminViews;
     const availabilityShare = resourceTotals.total > 0 ? Math.round((resourceTotals.available / resourceTotals.total) * 100) : 0;
 
     return (
-        <div className="grid gap-6 xl:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-2">
             <Card className="overflow-hidden border-slate-200 shadow-sm">
                 <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2 text-base text-slate-950">
@@ -142,49 +130,6 @@ export function SuperAdminAnalytics({
                                         <Cell key={entry.name} fill={REQUEST_COLORS[index % REQUEST_COLORS.length]} />
                                     ))}
                                 </Bar>
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card className="overflow-hidden border-slate-200 shadow-sm">
-                <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2 text-base text-slate-950">
-                        <BarChart3 className="h-5 w-5 text-slate-500" />
-                        Top Resource Hubs
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="mb-4 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-4">
-                        <div>
-                            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Public views</div>
-                            <div className="mt-1 text-2xl font-bold text-slate-950">{formatNumber(totalPublicViews)}</div>
-                        </div>
-                        <div>
-                            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Admin views</div>
-                            <div className="mt-1 text-2xl font-bold text-slate-950">{formatNumber(totalAdminViews)}</div>
-                        </div>
-                        <div className="col-span-2">
-                            <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Combined traffic</div>
-                            <div className="mt-1 text-2xl font-bold text-slate-950">{formatNumber(totalTraffic)}</div>
-                        </div>
-                    </div>
-                    <div className="h-[208px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={departmentData} margin={{ left: 0, right: 8, top: 8 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                                <XAxis
-                                    dataKey="name"
-                                    tick={{ fill: "#475569", fontSize: 11 }}
-                                    interval={0}
-                                    angle={-20}
-                                    textAnchor="end"
-                                    height={54}
-                                />
-                                <YAxis tick={{ fill: "#475569", fontSize: 12 }} />
-                                <Tooltip formatter={chartTooltipFormatter} />
-                                <Bar dataKey="total" fill="#2678E7" radius={[10, 10, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
