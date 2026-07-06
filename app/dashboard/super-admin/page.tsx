@@ -52,6 +52,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SuperAdminAnalytics } from "@/components/dashboard/super-admin-analytics";
 
 type DashboardData = {
   totalDepartments: number;
@@ -652,9 +653,24 @@ export default function SuperAdminDashboard() {
       </section>
 
       <section className="space-y-4">
+        <SectionTitle
+          number="3"
+          title="Visual Analytics"
+          caption="Turn the core counts into charts so trends are easier to scan in a video walkthrough."
+        />
+        <SuperAdminAnalytics
+          resourceTotals={data.resourceTotals}
+          requestTotals={data.requestTotals}
+          totalPublicViews={derived.totalPublicViews}
+          totalAdminViews={derived.totalAdminViews}
+          strongestDepartments={derived.strongestDepartments}
+        />
+      </section>
+
+      <section className="space-y-4">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <SectionTitle
-            number="3"
+            number="4"
             title="Department Operations Matrix"
             caption="Search, filter, and compare department capacity, machinery, requests, contact coverage, and traffic."
           />
@@ -865,7 +881,7 @@ export default function SuperAdminDashboard() {
 
       <section className="space-y-4">
         <SectionTitle
-          number="4"
+          number="5"
           title="Resource And Movement Detail"
           caption="Inventory concentration, latest resource requests, and quick links into traffic analytics."
         />
@@ -984,7 +1000,7 @@ export default function SuperAdminDashboard() {
       {dashboardSettings.showTimeline !== false && (
         <section className="space-y-4">
           <SectionTitle
-            number="5"
+            number="6"
             title="Super Admin Timeline"
             caption="A simple log of the latest resource movement so the command center shows what changed recently."
           />
