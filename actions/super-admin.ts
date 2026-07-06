@@ -228,6 +228,7 @@ export async function getSuperAdminOverview(): Promise<ActionResult> {
       adaptivePositionStatsByDepartment,
       entomologyStaffStatsByDepartment,
       recentResourceRequests,
+      interDepartmentRequestGroups,
     ] = await Promise.all([
       getResourceStatsByDepartment(),
       getRequestStatsByDepartment("requestingDeptId"),
@@ -242,6 +243,10 @@ export async function getSuperAdminOverview(): Promise<ActionResult> {
           lendingDept: { select: { id: true, name: true } },
           requestedBy: { select: { id: true, name: true, email: true } },
         },
+      }),
+      prisma.resourceRequest.groupBy({
+        by: ["requestingDeptId", "lendingDeptId", "status"],
+        _count: { _all: true },
       }),
     ]);
 
@@ -405,6 +410,59 @@ export async function getSuperAdminOverview(): Promise<ActionResult> {
       }
     }
 
+    // Aggregate inter-department request flow: which department requested from which,
+    // with per-status counts. Resolve to catalog display names so multiple raw DB
+    // departments under one catalog entry merge into a single row. Only pairs where
+    // BOTH sides map to a catalog department are included, so every cell/edge can be
+    // drilled into by catalog id.
+    const emptyStatusCounts = (): Record<RequestStatus, number> => ({
+      PENDING: 0,
+      APPROVED: 0,
+      REJECTED: 0,
+      EXPIRED: 0,
+      BORROWED: 0,
+      RETURNED: 0,
+      OVERDUE: 0,
+    });
+    const interDepartmentMap = new Map<
+      string,
+      {
+        requestingDept: string;
+        lendingDept: string;
+        requestingCatalogId: string;
+        lendingCatalogId: string;
+        total: number;
+        statuses: Record<RequestStatus, number>;
+      }
+    >();
+
+    for (const group of interDepartmentRequestGroups) {
+      const requestingCatalog = displayDepartmentByDataId.get(group.requestingDeptId);
+      const lendingCatalog = displayDepartmentByDataId.get(group.lendingDeptId);
+      if (!requestingCatalog || !lendingCatalog) continue;
+
+      const key = `${requestingCatalog.id}::${lendingCatalog.id}`;
+      const entry =
+        interDepartmentMap.get(key) ??
+        {
+          requestingDept: requestingCatalog.name,
+          lendingDept: lendingCatalog.name,
+          requestingCatalogId: requestingCatalog.id,
+          lendingCatalogId: lendingCatalog.id,
+          total: 0,
+          statuses: emptyStatusCounts(),
+        };
+
+      const count = group._count._all;
+      entry.total += count;
+      entry.statuses[group.status as RequestStatus] += count;
+      interDepartmentMap.set(key, entry);
+    }
+
+    const interDepartmentRequests = Array.from(interDepartmentMap.values())
+      .map(({ statuses, ...rest }) => ({ ...rest, ...statuses }))
+      .sort((a, b) => b.total - a.total);
+
     const displayedRecentResourceRequests = recentResourceRequests
       .filter(
         (request) =>
@@ -442,6 +500,7 @@ export async function getSuperAdminOverview(): Promise<ActionResult> {
         departments: departmentOperations,
         departmentOperations,
         recentResourceRequests: displayedRecentResourceRequests,
+        interDepartmentRequests,
         deptViewMap,
         publicDeptViewMap,
         adminDeptViewMap,
@@ -869,5 +928,76 @@ export async function getDepartmentPageViews(departmentId: string): Promise<Acti
   } catch (error) {
     console.error("Get department page views error:", error);
     return { success: false, message: "Failed to load page views" };
+  }
+}
+
+export async function getInterDepartmentRequestDetail(
+  requestingCatalogId: string,
+  lendingCatalogId: string
+): Promise<ActionResult> {
+  try {
+    const session = await requireSuperAdmin();
+    if (!session) return { success: false, message: "Access denied. Super Admin only." };
+
+    const requestingCatalog = PUBLIC_DEPARTMENT_CATALOG.find((item) => item.id === requestingCatalogId);
+    const lendingCatalog = PUBLIC_DEPARTMENT_CATALOG.find((item) => item.id === lendingCatalogId);
+    if (!requestingCatalog || !lendingCatalog) {
+      return { success: false, message: "Invalid department pair." };
+    }
+
+    // Resolve catalog entries to the underlying raw Department ids (by id or alias).
+    const [requestingDepts, lendingDepts] = await Promise.all([
+      prisma.department.findMany({
+        where: {
+          OR: [
+            { id: { in: requestingCatalog.dataIds } },
+            { name: { in: requestingCatalog.nameAliases } },
+          ],
+        },
+        select: { id: true },
+      }),
+      prisma.department.findMany({
+        where: {
+          OR: [
+            { id: { in: lendingCatalog.dataIds } },
+            { name: { in: lendingCatalog.nameAliases } },
+          ],
+        },
+        select: { id: true },
+      }),
+    ]);
+
+    const requestingIds = requestingDepts.map((d) => d.id);
+    const lendingIds = lendingDepts.map((d) => d.id);
+    if (requestingIds.length === 0 || lendingIds.length === 0) {
+      return { success: true, data: { requests: [] } };
+    }
+
+    const requests = await prisma.resourceRequest.findMany({
+      where: {
+        requestingDeptId: { in: requestingIds },
+        lendingDeptId: { in: lendingIds },
+      },
+      orderBy: { createdAt: "desc" },
+      include: {
+        requestedBy: { select: { id: true, name: true } },
+      },
+    });
+
+    return {
+      success: true,
+      data: {
+        requests: requests.map((request) => ({
+          id: request.id,
+          resourceName: request.resourceName,
+          status: request.status,
+          createdAt: request.createdAt,
+          requestedBy: request.requestedBy,
+        })),
+      },
+    };
+  } catch (error) {
+    console.error("Inter-department request detail error:", error);
+    return { success: false, message: "Failed to load request detail" };
   }
 }

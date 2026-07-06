@@ -53,6 +53,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SuperAdminAnalytics } from "@/components/dashboard/super-admin-analytics";
+import { SuperAdminRequestFlow } from "@/components/dashboard/super-admin-request-flow";
 
 type DashboardData = {
   totalDepartments: number;
@@ -63,6 +64,7 @@ type DashboardData = {
   requestTotals: RequestStats;
   departmentOperations: DepartmentOperation[];
   recentResourceRequests: RecentRequest[];
+  interDepartmentRequests: InterDepartmentRequest[];
   publicDeptViewMap: Record<string, number>;
   adminDeptViewMap: Record<string, number>;
   slugNameMap: Record<string, string>;
@@ -118,6 +120,21 @@ type RecentRequest = {
   requestingDept: { id: string; name: string };
   lendingDept: { id: string; name: string };
   requestedBy: { id: string; name: string; email: string };
+};
+
+type InterDepartmentRequest = {
+  requestingDept: string;
+  lendingDept: string;
+  requestingCatalogId: string;
+  lendingCatalogId: string;
+  total: number;
+  PENDING: number;
+  APPROVED: number;
+  REJECTED: number;
+  EXPIRED: number;
+  BORROWED: number;
+  RETURNED: number;
+  OVERDUE: number;
 };
 
 type FocusFilter = "all" | "attention" | "requests" | "repairs" | "contacts";
@@ -618,7 +635,7 @@ export default function SuperAdminDashboard() {
         <SectionTitle
           number="2"
           title="Priority Review"
-          caption="A clean view of request movement across pending, approved, borrowed, returned, and closed states."
+          caption="A clean view of request movement across pending, approved, borrowed, returned, and not approved states."
         />
         <div className="grid gap-6">
           <Card className="border-slate-200 shadow-sm">
@@ -636,7 +653,7 @@ export default function SuperAdminDashboard() {
                   ["Borrowed", data.requestTotals.borrowed, ArrowUpRight, "border-slate-200 bg-white text-slate-800"],
                   ["Overdue", data.requestTotals.overdue, AlertTriangle, "border-slate-200 bg-white text-slate-800"],
                   ["Returned", data.requestTotals.returned, Package, "border-slate-200 bg-white text-slate-800"],
-                  ["Closed", data.requestTotals.rejected + data.requestTotals.expired, ClipboardList, "border-slate-200 bg-white text-slate-800"],
+                  ["Not approved", data.requestTotals.rejected + data.requestTotals.expired, ClipboardList, "border-slate-200 bg-white text-slate-800"],
                 ] satisfies FlowItem[]).map(([label, value, Icon, style]) => (
                   <div key={label} className={`rounded-lg border p-3 ${style}`}>
                     <div className="flex items-center justify-between gap-2">
@@ -879,6 +896,15 @@ export default function SuperAdminDashboard() {
       <section className="space-y-4">
         <SectionTitle
           number="5"
+          title="Inter-Department Request Flow"
+          caption="Which department requested resources from which department, and the current status of those requests."
+        />
+        <SuperAdminRequestFlow pairs={data.interDepartmentRequests} />
+      </section>
+
+      <section className="space-y-4">
+        <SectionTitle
+          number="6"
           title="Resource And Movement Detail"
           caption="Inventory concentration, latest resource requests, and quick links into traffic analytics."
         />
@@ -997,7 +1023,7 @@ export default function SuperAdminDashboard() {
       {dashboardSettings.showTimeline !== false && (
         <section className="space-y-4">
           <SectionTitle
-            number="6"
+            number="7"
             title="Super Admin Timeline"
             caption="A simple log of the latest resource movement so the command center shows what changed recently."
           />
