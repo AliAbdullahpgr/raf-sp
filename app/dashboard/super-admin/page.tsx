@@ -428,7 +428,6 @@ export default function SuperAdminDashboard() {
       issueCount: getIssueCount(department),
     }));
 
-    const attentionDepartments = departments.filter((department) => department.attention);
     const requestDepartments = departments.filter(
       (department) => department.openIncoming > 0 || department.openOutgoing > 0
     );
@@ -470,7 +469,6 @@ export default function SuperAdminDashboard() {
 
     return {
       departments,
-      attentionDepartments,
       requestDepartments,
       repairDepartments,
       contactDepartments,
@@ -590,14 +588,7 @@ export default function SuperAdminDashboard() {
           title="Executive Snapshot"
           caption="High level operating position across departments, inventory, requests, and traffic."
         />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <KpiCard
-            title="Attention Needed"
-            value={derived.attentionDepartments.length}
-            detail={`${derived.repairDepartments.length} with repairs, ${derived.contactDepartments.length} with missing contacts`}
-            icon={AlertTriangle}
-            className="bg-blue-50 text-blue-700"
-          />
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <KpiCard
             title="Available Resources"
             value={formatNumber(data.resourceTotals.available)}
@@ -689,12 +680,9 @@ export default function SuperAdminDashboard() {
           </div>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-4">
           <Badge variant="outline" className="justify-center rounded-lg border-slate-200 bg-white py-2 text-slate-700">
             {derived.departments.length} total
-          </Badge>
-          <Badge variant="outline" className="justify-center rounded-lg border-slate-200 bg-white py-2 text-slate-700">
-            {derived.attentionDepartments.length} attention
           </Badge>
           <Badge variant="outline" className="justify-center rounded-lg border-slate-200 bg-white py-2 text-slate-700">
             {derived.requestDepartments.length} requests
@@ -911,17 +899,11 @@ export default function SuperAdminDashboard() {
           </Card>
 
           <Card className="border-slate-200 shadow-sm">
-            <CardHeader className="flex flex-col gap-3 pb-3 sm:flex-row sm:items-center sm:justify-between">
+            <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base text-slate-950">
                 <Send className="h-5 w-5 text-slate-500" />
                 Recent Resource Requests
               </CardTitle>
-              <Link href="/dashboard/requests">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <ArrowUpRight className="h-4 w-4" />
-                  Requests
-                </Button>
-              </Link>
             </CardHeader>
             <CardContent className="space-y-3">
               {data.recentResourceRequests.length === 0 && (
