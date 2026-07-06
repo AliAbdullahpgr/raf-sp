@@ -62,6 +62,11 @@ const superAdminNavigation = [
     href: "/dashboard/super-admin/admin-views",
     icon: Monitor,
   },
+  {
+    name: "Settings",
+    href: "/dashboard/super-admin/settings",
+    icon: Settings,
+  },
 ];
 
 const adminNavigation = [
