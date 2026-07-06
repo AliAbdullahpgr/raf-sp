@@ -511,7 +511,8 @@ export async function getSuperAdminOverview(): Promise<ActionResult> {
     };
   } catch (error) {
     console.error("Super admin overview error:", error);
-    return { success: false, message: "Failed to load overview" };
+    const detail = error instanceof Error ? error.message : String(error);
+    return { success: false, message: `Failed to load overview: ${detail}` };
   }
 }
 

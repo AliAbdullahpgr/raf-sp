@@ -395,6 +395,7 @@ function SectionTitle({
 export default function SuperAdminDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [query, setQuery] = useState("");
   const [focus, setFocus] = useState<FocusFilter>("all");
@@ -406,8 +407,17 @@ export default function SuperAdminDashboard() {
 
   const fetchData = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
-    const result = await getSuperAdminOverview();
-    if (result.success) setData(result.data);
+    try {
+      const result = await getSuperAdminOverview();
+      if (result.success) {
+        setData(result.data);
+        setErrorMessage(null);
+      } else {
+        setErrorMessage(result.message ?? "Failed to load overview");
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : String(error));
+    }
     setLoading(false);
     setRefreshing(false);
   }, []);
@@ -512,7 +522,12 @@ export default function SuperAdminDashboard() {
   }
 
   if (!data || !derived) {
-    return <div className="py-12 text-center text-red-500">Failed to load data</div>;
+    return (
+      <div className="py-12 text-center text-red-500">
+        Failed to load data
+        {errorMessage && <div className="mt-2 text-sm text-red-400">{errorMessage}</div>}
+      </div>
+    );
   }
 
   return (
