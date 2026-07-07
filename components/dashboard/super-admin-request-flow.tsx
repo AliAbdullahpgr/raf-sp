@@ -110,7 +110,7 @@ type Selection = {
 };
 
 export function SuperAdminRequestFlow({ pairs }: { pairs: Pair[] }) {
-    const [view, setView] = useState<"map" | "matrix">("matrix");
+    const [view, setView] = useState<"map" | "matrix">("map");
     const [selection, setSelection] = useState<Selection | null>(null);
 
     return (

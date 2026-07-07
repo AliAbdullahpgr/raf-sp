@@ -642,6 +642,15 @@ export default function SuperAdminDashboard() {
         />
       </section>
 
+      <section className="space-y-4">
+        <SectionTitle
+          number="1"
+          title="Inter-Department Request Flow"
+          caption="Which department requested resources from which department, and the current status of those requests."
+        />
+        <SuperAdminRequestFlow pairs={data.interDepartmentRequests} />
+      </section>
+
       <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as MainDashboardTab)}>
         <div className="sticky top-0 z-20 -mx-1 bg-background/95 px-1 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80">
           <TabsList className="grid h-auto w-full grid-cols-4 bg-slate-100 p-1">
@@ -654,8 +663,8 @@ export default function SuperAdminDashboard() {
               Departments
             </TabsTrigger>
             <TabsTrigger value="requests" className="gap-2 px-2 text-xs sm:text-sm">
-              <Send className="h-4 w-4" />
-              Requests
+              <ClipboardList className="h-4 w-4" />
+              Request Status
             </TabsTrigger>
             <TabsTrigger value="activity" className="gap-2 px-2 text-xs sm:text-sm">
               <History className="h-4 w-4" />
@@ -754,9 +763,9 @@ export default function SuperAdminDashboard() {
               />
             </div>
             <Tabs value={focus} onValueChange={(value) => setFocus(value as FocusFilter)}>
-              <TabsList className="grid h-auto grid-cols-5 bg-slate-100 p-1">
+              <TabsList className="flex h-auto w-full justify-start overflow-x-auto bg-slate-100 p-1 sm:w-auto">
                 {(Object.keys(focusLabels) as FocusFilter[]).map((key) => (
-                  <TabsTrigger key={key} value={key} className="px-2 text-xs">
+                  <TabsTrigger key={key} value={key} className="min-w-fit px-3 text-xs">
                     {focusLabels[key]}
                   </TabsTrigger>
                 ))}
@@ -783,169 +792,145 @@ export default function SuperAdminDashboard() {
         <Card className="border-slate-200 shadow-sm">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[1260px] text-sm">
+              <table className="w-full min-w-[920px] text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                    <th className="px-4 py-3 font-semibold">Department</th>
-                    <th className="px-4 py-3 font-semibold">People</th>
-                    <th className="px-4 py-3 font-semibold">Resources / Posts</th>
-                    <th className="px-4 py-3 font-semibold">Requests</th>
-                    <th className="px-4 py-3 font-semibold">Traffic</th>
-                    <th className="px-4 py-3 font-semibold">Coverage</th>
-                    <th className="px-4 py-3 font-semibold">Actions</th>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
+                    <th className="w-[34%] px-4 py-3 font-semibold">Department</th>
+                    <th className="w-[18%] px-4 py-3 font-semibold">Capacity</th>
+                    <th className="w-[18%] px-4 py-3 font-semibold">Requests</th>
+                    <th className="w-[22%] px-4 py-3 font-semibold">Coverage</th>
+                    <th className="w-[8%] px-4 py-3 text-right font-semibold">Menu</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {derived.filteredDepartments.map((department) => (
-                    <tr key={department.id} className="border-b border-slate-100 align-top last:border-0">
-                      <td className="px-4 py-4">
-                        <div className="font-semibold text-slate-950">{department.name}</div>
-                        <div className="mt-2 flex max-w-[260px] items-center gap-1 text-xs text-slate-500">
-                          <MapPin className="h-3.5 w-3.5 shrink-0" />
-                          <span className="truncate">{department.location}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2 font-semibold text-slate-950">
-                          <Users className="h-4 w-4 text-slate-400" />
-                          {department.staffUsers} users
-                        </div>
-                        {department.knownStaffPositions > 0 && (
-                          <div className="mt-1 text-xs text-slate-500">
-                            {department.knownStaffPositions} filled of {department.sanctionedPositions || department.knownStaffPositions}
-                          </div>
-                        )}
-                        {department.vacantPositions > 0 && (
-                          <div className="mt-1 text-xs font-medium text-blue-700">{department.vacantPositions} vacant posts</div>
-                        )}
-                      </td>
-                      <td className="px-4 py-4">
-                        {department.resources.total > 0 ? (
-                          <>
-                            <div className="grid grid-cols-3 gap-2 text-xs">
-                              <div>
-                                <div className="font-bold text-slate-950">{formatNumber(department.resources.total)}</div>
-                                <div className="text-slate-500">total</div>
+                  {derived.filteredDepartments.map((department) => {
+                    const pendingRequests = department.incomingRequests.pending + department.outgoingRequests.pending;
+                    const overdueRequests = department.incomingRequests.overdue + department.outgoingRequests.overdue;
+                    const openTotal = department.openIncoming + department.openOutgoing;
+                    const contactItems = [
+                      { label: "Focal", ready: Boolean(department.focalPerson) },
+                      { label: "Email", ready: Boolean(department.email) },
+                      { label: "Phone", ready: Boolean(department.phone) },
+                    ];
+
+                    return (
+                      <tr key={department.id} className="border-b border-slate-100 align-middle last:border-0 hover:bg-slate-50/70">
+                        <td className="px-4 py-3">
+                          <div className="flex min-w-0 items-start gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-950 text-white">
+                              <Building2 className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="truncate font-semibold text-slate-950">{department.name}</div>
+                              <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">{department.location}</span>
                               </div>
-                              <div>
-                                <div className="font-bold text-blue-700">{formatNumber(department.resources.available)}</div>
-                                <div className="text-slate-500">ready</div>
-                              </div>
-                              <div>
-                                <div className="font-bold text-slate-950">{formatNumber(department.resources.needsRepair)}</div>
-                                <div className="text-slate-500">repair</div>
+                              <div className="mt-2 flex flex-wrap gap-1.5">
+                                <Badge variant="outline" className="border-slate-200 bg-white text-[11px] text-slate-600">
+                                  <Users className="h-3 w-3" />
+                                  {department.staffUsers} users
+                                </Badge>
+                                <Badge variant="outline" className="border-slate-200 bg-white text-[11px] text-slate-600">
+                                  <Eye className="h-3 w-3" />
+                                  {formatNumber(department.publicViews + department.adminViews)} views
+                                </Badge>
                               </div>
                             </div>
-                            <div className="mt-2 h-1.5 w-32 overflow-hidden rounded-full bg-slate-100">
-                              <div
-                                className="h-full rounded-full bg-blue-600"
-                                style={{ width: `${department.availability}%` }}
-                              />
-                            </div>
-                          </>
-                        ) : department.sanctionedPositions > 0 ? (
-                          <>
-                            <div className="grid grid-cols-3 gap-2 text-xs">
-                              <div>
-                                <div className="font-bold text-slate-950">{formatNumber(department.sanctionedPositions)}</div>
-                                <div className="text-slate-500">sanctioned</div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {department.resources.total > 0 ? (
+                            <div className="space-y-2">
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-lg font-bold text-slate-950">{formatNumber(department.resources.available)}</span>
+                                <span className="text-xs text-slate-500">ready of {formatNumber(department.resources.total)}</span>
                               </div>
-                              <div>
-                                <div className="font-bold text-blue-700">{formatNumber(department.knownStaffPositions)}</div>
-                                <div className="text-slate-500">filled</div>
+                              <div className="h-1.5 w-full max-w-[150px] overflow-hidden rounded-full bg-slate-100">
+                                <div className="h-full rounded-full bg-blue-600" style={{ width: `${department.availability}%` }} />
                               </div>
-                              <div>
-                                <div className="font-bold text-slate-950">{formatNumber(department.vacantPositions)}</div>
-                                <div className="text-slate-500">vacant</div>
+                              <div className="text-xs text-slate-500">{department.resources.needsRepair} repair</div>
+                            </div>
+                          ) : department.sanctionedPositions > 0 ? (
+                            <div className="space-y-1">
+                              <div className="text-lg font-bold text-slate-950">{formatNumber(department.knownStaffPositions)}</div>
+                              <div className="text-xs text-slate-500">
+                                filled of {formatNumber(department.sanctionedPositions)} posts
                               </div>
+                              {department.vacantPositions > 0 && (
+                                <div className="text-xs font-medium text-blue-700">{formatNumber(department.vacantPositions)} vacant</div>
+                              )}
                             </div>
-                            <div className="mt-2 text-xs text-slate-500">
-                              {department.positionRecords} position records
+                          ) : (
+                            <div className="text-xs text-slate-500">No resource records</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="grid grid-cols-3 gap-2 text-center">
+                            <div className="rounded-md border border-slate-100 bg-white px-2 py-1.5">
+                              <div className="font-bold text-slate-950">{openTotal}</div>
+                              <div className="text-[10px] text-slate-500">open</div>
                             </div>
-                          </>
-                        ) : (
-                          <div className="text-xs text-slate-500">No resource records</div>
-                        )}
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="grid grid-cols-2 gap-3 text-xs">
-                          <div>
-                            <div className="font-bold text-slate-950">{department.openIncoming}</div>
-                            <div className="text-slate-500">incoming open</div>
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-950">{department.openOutgoing}</div>
-                            <div className="text-slate-500">outgoing open</div>
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-950">
-                              {department.incomingRequests.pending + department.outgoingRequests.pending}
+                            <div className="rounded-md border border-slate-100 bg-white px-2 py-1.5">
+                              <div className="font-bold text-slate-950">{pendingRequests}</div>
+                              <div className="text-[10px] text-slate-500">pending</div>
                             </div>
-                            <div className="text-slate-500">pending</div>
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-950">
-                              {department.incomingRequests.overdue + department.outgoingRequests.overdue}
+                            <div className="rounded-md border border-slate-100 bg-white px-2 py-1.5">
+                              <div className="font-bold text-slate-950">{overdueRequests}</div>
+                              <div className="text-[10px] text-slate-500">overdue</div>
                             </div>
-                            <div className="text-slate-500">overdue</div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2 text-xs text-slate-600">
-                          <Eye className="h-4 w-4 text-slate-400" />
-                          {formatNumber(department.publicViews)} public
-                        </div>
-                        <div className="mt-2 flex items-center gap-2 text-xs text-slate-600">
-                          <Monitor className="h-4 w-4 text-slate-400" />
-                          {formatNumber(department.adminViews)} admin
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="space-y-2 text-xs">
-                          <div className="flex items-center gap-2 text-slate-600">
-                            <UserCheck className="h-4 w-4 text-slate-400" />
-                            <span className="max-w-[190px] truncate">{department.focalPerson || "Missing focal person"}</span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="min-w-0">
+                            <div className="truncate text-xs font-medium text-slate-700">
+                              {department.focalPerson || "Missing focal person"}
+                            </div>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {contactItems.map((item) => (
+                                <Badge
+                                  key={item.label}
+                                  variant="outline"
+                                  className={`border-slate-200 text-[11px] ${
+                                    item.ready ? "bg-white text-slate-600" : "bg-slate-100 text-slate-500"
+                                  }`}
+                                >
+                                  {item.label}
+                                </Badge>
+                              ))}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 text-slate-600">
-                            <Mail className="h-4 w-4 text-slate-400" />
-                            <span className="max-w-[190px] truncate">{department.email || "Missing email"}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-slate-600">
-                            <Phone className="h-4 w-4 text-slate-400" />
-                            <span className="max-w-[190px] truncate">{department.phone || "Missing phone"}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-8 w-8 p-0" aria-label={`${department.name} actions`}>
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => setSelectedDepartment(department)}>
-                              <PanelRightOpen className="h-4 w-4" />
-                              Details
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href={getDepartmentDashboardRoute(department.id)}>
-                                <ArrowUpRight className="h-4 w-4" />
-                                Dashboard
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/departments/${department.id}`}>
-                                <Eye className="h-4 w-4" />
-                                Public page
-                              </Link>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-8 w-8 p-0" aria-label={`${department.name} actions`}>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem onClick={() => setSelectedDepartment(department)}>
+                                <PanelRightOpen className="h-4 w-4" />
+                                Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={getDepartmentDashboardRoute(department.id)}>
+                                  <ArrowUpRight className="h-4 w-4" />
+                                  Dashboard
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/departments/${department.id}`}>
+                                  <Eye className="h-4 w-4" />
+                                  Public page
+                                </Link>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -958,14 +943,36 @@ export default function SuperAdminDashboard() {
 
       </TabsContent>
       <TabsContent value="requests" className="mt-0 space-y-4">
-      <section className="space-y-4">
-        <SectionTitle
-          number="5"
-          title="Inter-Department Request Flow"
-          caption="Which department requested resources from which department, and the current status of those requests."
-        />
-        <SuperAdminRequestFlow pairs={data.interDepartmentRequests} />
-      </section>
+        <section className="space-y-4">
+          <SectionTitle
+            number="4"
+            title="Request Status Detail"
+            caption="Compact counts for each request status. The full department-to-department flow stays visible above the tabs."
+          />
+          <Card className="border-slate-200 shadow-sm">
+            <CardContent className="p-4">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {([
+                  ["Pending", data.requestTotals.pending, Clock, "requests waiting for action"],
+                  ["Approved", data.requestTotals.approved, CheckCircle2, "approved but not necessarily borrowed"],
+                  ["Borrowed", data.requestTotals.borrowed, ArrowUpRight, "currently with requesting department"],
+                  ["Overdue", data.requestTotals.overdue, AlertTriangle, "needs follow-up"],
+                  ["Returned", data.requestTotals.returned, Package, "completed movement"],
+                  ["Not approved", data.requestTotals.rejected + data.requestTotals.expired, ClipboardList, "rejected or expired"],
+                ] satisfies [string, number, LucideIcon, string][]).map(([label, value, Icon, detail]) => (
+                  <div key={label} className="rounded-lg border border-slate-200 bg-white p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold text-slate-950">{label}</span>
+                      <Icon className="h-4 w-4 text-slate-500" />
+                    </div>
+                    <div className="mt-2 text-2xl font-bold text-slate-950">{formatNumber(value)}</div>
+                    <div className="mt-1 text-xs text-slate-500">{detail}</div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
 
       </TabsContent>
       <TabsContent value="activity" className="mt-0 space-y-4">
