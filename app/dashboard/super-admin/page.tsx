@@ -11,7 +11,14 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Activity,
   AlertTriangle,
@@ -30,6 +37,7 @@ import {
   Mail,
   MapPin,
   Monitor,
+  MoreHorizontal,
   Package,
   PanelRightOpen,
   Phone,
@@ -138,6 +146,7 @@ type InterDepartmentRequest = {
 };
 
 type FocusFilter = "all" | "attention" | "requests" | "repairs" | "contacts";
+type MainDashboardTab = "overview" | "departments" | "requests" | "activity";
 type FlowItem = [label: string, value: number, icon: LucideIcon, className: string];
 
 type DerivedDepartment = DepartmentOperation & {
@@ -399,6 +408,7 @@ export default function SuperAdminDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [query, setQuery] = useState("");
   const [focus, setFocus] = useState<FocusFilter>("all");
+  const [mainTab, setMainTab] = useState<MainDashboardTab>("overview");
   const [selectedDepartment, setSelectedDepartment] = useState<DerivedDepartment | null>(null);
   const [dashboardSettings, setDashboardSettings] = useState<DashboardSettings>({
     showTimeline: true,
@@ -551,39 +561,6 @@ export default function SuperAdminDashboard() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => exportDepartmentsCsv(derived.departments)}
-                  className="w-fit gap-2"
-                >
-                  <Download className="h-4 w-4" />
-                  Departments CSV
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => exportRequestsCsv(data.recentResourceRequests)}
-                  className="w-fit gap-2"
-                >
-                  <FileText className="h-4 w-4" />
-                  Requests CSV
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.print()}
-                  className="w-fit gap-2"
-                >
-                  <Printer className="h-4 w-4" />
-                  Print
-                </Button>
-                <Link href="/dashboard/super-admin/settings">
-                  <Button variant="outline" size="sm" className="w-fit gap-2">
-                    <Settings className="h-4 w-4" />
-                    Settings
-                  </Button>
-                </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
                   onClick={() => fetchData(true)}
                   disabled={refreshing}
                   className="w-fit gap-2"
@@ -591,6 +568,38 @@ export default function SuperAdminDashboard() {
                   <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
                   {refreshing ? "Refreshing..." : "Refresh"}
                 </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-9 w-9 p-0" aria-label="Dashboard actions">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuItem onClick={() => exportDepartmentsCsv(derived.departments)}>
+                      <Download className="h-4 w-4" />
+                      Departments CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => exportRequestsCsv(data.recentResourceRequests)}>
+                      <FileText className="h-4 w-4" />
+                      Requests CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => exportOverviewJson(data)}>
+                      <Download className="h-4 w-4" />
+                      Full JSON export
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => window.print()}>
+                      <Printer className="h-4 w-4" />
+                      Print dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/super-admin/settings">
+                        <Settings className="h-4 w-4" />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
@@ -615,6 +624,47 @@ export default function SuperAdminDashboard() {
         </div>
       </div>
 
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-950">Dashboard Graphs</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Resource status and request movement stay visible while you switch between detail tabs.
+            </p>
+          </div>
+          <Badge variant="outline" className="w-fit border-slate-200 bg-white text-slate-700">
+            {formatNumber(data.todayPageViews)} views today
+          </Badge>
+        </div>
+        <SuperAdminAnalytics
+          resourceTotals={data.resourceTotals}
+          requestTotals={data.requestTotals}
+        />
+      </section>
+
+      <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as MainDashboardTab)}>
+        <div className="sticky top-0 z-20 -mx-1 bg-background/95 px-1 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <TabsList className="grid h-auto w-full grid-cols-4 bg-slate-100 p-1">
+            <TabsTrigger value="overview" className="gap-2 px-2 text-xs sm:text-sm">
+              <BarChart3 className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="departments" className="gap-2 px-2 text-xs sm:text-sm">
+              <Building2 className="h-4 w-4" />
+              Departments
+            </TabsTrigger>
+            <TabsTrigger value="requests" className="gap-2 px-2 text-xs sm:text-sm">
+              <Send className="h-4 w-4" />
+              Requests
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="gap-2 px-2 text-xs sm:text-sm">
+              <History className="h-4 w-4" />
+              Activity
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
+      <TabsContent value="overview" className="mt-0 space-y-4">
       <section className="space-y-4">
         <SectionTitle
           number="1"
@@ -683,19 +733,9 @@ export default function SuperAdminDashboard() {
           </Card>
         </div>
       </section>
+      </TabsContent>
 
-      <section className="space-y-4">
-        <SectionTitle
-          number="3"
-          title="Visual Analytics"
-          caption="Turn the core counts into charts so trends are easier to scan in a video walkthrough."
-        />
-        <SuperAdminAnalytics
-          resourceTotals={data.resourceTotals}
-          requestTotals={data.requestTotals}
-        />
-      </section>
-
+      <TabsContent value="departments" className="mt-0 space-y-4">
       <section className="space-y-4">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
           <SectionTitle
@@ -878,23 +918,31 @@ export default function SuperAdminDashboard() {
                         </div>
                       </td>
                       <td className="px-4 py-4">
-                        <div className="flex flex-col gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setSelectedDepartment(department)}
-                            className="justify-start gap-2"
-                          >
-                            <PanelRightOpen className="h-4 w-4" />
-                            Details
-                          </Button>
-                          <Link href={getDepartmentDashboardRoute(department.id)}>
-                            <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
-                              <ArrowUpRight className="h-4 w-4" />
-                              Dashboard
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8 w-8 p-0" aria-label={`${department.name} actions`}>
+                              <MoreHorizontal className="h-4 w-4" />
                             </Button>
-                          </Link>
-                        </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem onClick={() => setSelectedDepartment(department)}>
+                              <PanelRightOpen className="h-4 w-4" />
+                              Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={getDepartmentDashboardRoute(department.id)}>
+                                <ArrowUpRight className="h-4 w-4" />
+                                Dashboard
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/departments/${department.id}`}>
+                                <Eye className="h-4 w-4" />
+                                Public page
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
@@ -908,6 +956,8 @@ export default function SuperAdminDashboard() {
         </Card>
       </section>
 
+      </TabsContent>
+      <TabsContent value="requests" className="mt-0 space-y-4">
       <section className="space-y-4">
         <SectionTitle
           number="5"
@@ -917,6 +967,8 @@ export default function SuperAdminDashboard() {
         <SuperAdminRequestFlow pairs={data.interDepartmentRequests} />
       </section>
 
+      </TabsContent>
+      <TabsContent value="activity" className="mt-0 space-y-4">
       <section className="space-y-4">
         <SectionTitle
           number="6"
@@ -1074,6 +1126,8 @@ export default function SuperAdminDashboard() {
           </Card>
         </section>
       )}
+      </TabsContent>
+      </Tabs>
 
       <Dialog open={!!selectedDepartment} onOpenChange={(open) => !open && setSelectedDepartment(null)}>
         <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto">
