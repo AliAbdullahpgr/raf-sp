@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const EXTENSION_FOCAL_PERSON = "Mr. Shahzad Sabir";
+const EXTENSION_DESIGNATION = "Director Extension Multan";
+const EXTENSION_EMAIL = "daextmultan@gmail.com";
+const EXTENSION_PHONE = "0300 6632304; 0336 6232660";
+
 export async function GET() {
   try {
     const department = await prisma.department.findUnique({
@@ -49,7 +54,13 @@ export async function GET() {
     const unusedCount = offices.filter((item) => item.status === "Un used").length;
 
     return NextResponse.json({
-      department,
+      department: {
+        ...department,
+        focalPerson: EXTENSION_FOCAL_PERSON,
+        designation: EXTENSION_DESIGNATION,
+        email: EXTENSION_EMAIL,
+        phone: EXTENSION_PHONE,
+      },
       offices,
       stats: {
         totalOffices,

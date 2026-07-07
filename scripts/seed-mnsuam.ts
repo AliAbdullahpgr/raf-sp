@@ -22,10 +22,10 @@ async function main() {
       location: "Old Shujabad Road, Multan",
       description:
         "Vibrant agricultural university providing research-driven facilities, modern labs, and collaborative spaces for South Punjab Regional Agriculture Forum.",
-      focalPerson: "Dr. Mahmood Alam",
-      designation: "Directorate of University Farms",
-      phone: "+92-61-9210071",
-      email: "mahmood.alam@mnsuam.edu.pk",
+      focalPerson: "MNSUAM Focal Person",
+      designation: "Director Estate",
+      phone: "+923045337311",
+      email: "dem@mnsuam.edu.pk",
     },
     create: {
       id: departmentId,
@@ -33,10 +33,10 @@ async function main() {
       location: "Old Shujabad Road, Multan",
       description:
         "Vibrant agricultural university providing research-driven facilities, modern labs, and collaborative spaces for South Punjab Regional Agriculture Forum.",
-      focalPerson: "Dr. Mahmood Alam",
-      designation: "Directorate of University Farms",
-      phone: "+92-61-9210071",
-      email: "mahmood.alam@mnsuam.edu.pk",
+      focalPerson: "MNSUAM Focal Person",
+      designation: "Director Estate",
+      phone: "+923045337311",
+      email: "dem@mnsuam.edu.pk",
     },
   });
 

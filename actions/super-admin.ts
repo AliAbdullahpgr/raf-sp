@@ -34,10 +34,10 @@ const PUBLIC_DEPARTMENT_CATALOG: PublicDepartmentCatalogItem[] = [
     nameAliases: ["Muhammad Nawaz Shareef University of Agriculture"],
     name: "Muhammad Nawaz Shareef University of Agriculture",
     location: "Multan, Punjab",
-    focalPerson: "Dr. Muhammad Asif",
-    designation: "Director",
-    email: "info@mnsuam.edu.pk",
-    phone: "+92-61-9210071",
+    focalPerson: "MNSUAM Focal Person",
+    designation: "Director Estate",
+    email: "dem@mnsuam.edu.pk",
+    phone: "+923045337311",
   },
   {
     id: "amri",
@@ -109,8 +109,8 @@ const PUBLIC_DEPARTMENT_CATALOG: PublicDepartmentCatalogItem[] = [
     nameAliases: ["Mango Research Institute"],
     name: "Mango Research Institute",
     location: "Multan, Punjab",
-    focalPerson: "Mr. Abid Hameed Khan",
-    designation: "Scientific Officer- Entomology",
+    focalPerson: "Abid Hameed Khan",
+    designation: "Scientific Officer Ento. MRI (Focal Person)",
     email: "abidhameedkhan@yahoo.com",
     phone: "0300-6326987",
   },
@@ -121,10 +121,10 @@ const PUBLIC_DEPARTMENT_CATALOG: PublicDepartmentCatalogItem[] = [
     nameAliases: ["Agriculture Extension Wing", "Agricultural Extension Wing"],
     name: "Agriculture Extension Wing",
     location: "Multan, Punjab",
-    focalPerson: "Dr. Ahmad Hassan",
-    designation: "Director Extension",
-    email: "ahmad.hassan@ext.gov.pk",
-    phone: "+92-61-9210076",
+    focalPerson: "Mr. Shahzad Sabir",
+    designation: "Director Extension Multan",
+    email: "daextmultan@gmail.com",
+    phone: "0300 6632304; 0336 6232660",
   },
   {
     id: "cotton-institute",
@@ -187,6 +187,30 @@ const PUBLIC_DEPARTMENT_CATALOG: PublicDepartmentCatalogItem[] = [
     phone: null,
   },
 ];
+
+const PUBLIC_DEPARTMENT_CONTACT_OVERRIDES: Record<
+  string,
+  Pick<PublicDepartmentCatalogItem, "focalPerson" | "designation" | "email" | "phone">
+> = {
+  mnsuam: {
+    focalPerson: "MNSUAM Focal Person",
+    designation: "Director Estate",
+    email: "dem@mnsuam.edu.pk",
+    phone: "+923045337311",
+  },
+  mri: {
+    focalPerson: "Abid Hameed Khan",
+    designation: "Scientific Officer Ento. MRI (Focal Person)",
+    email: "abidhameedkhan@yahoo.com",
+    phone: "0300-6326987",
+  },
+  ext: {
+    focalPerson: "Mr. Shahzad Sabir",
+    designation: "Director Extension Multan",
+    email: "daextmultan@gmail.com",
+    phone: "0300 6632304; 0336 6232660",
+  },
+};
 
 function catalogForTrackedId(departmentId: string | null) {
   if (!departmentId) return null;
@@ -356,15 +380,16 @@ export async function getSuperAdminOverview(): Promise<ActionResult> {
       const entomologyStaff = mergeEntomologyStaffStatsForDepartmentIds(entomologyStaffStatsByDepartment, matchedDepartmentIds);
       const knownStaffPositions = adaptivePositions.filled + entomologyStaff.officers + entomologyStaff.officials;
       const staffUsers = matchedDepartments.reduce((sum, department) => sum + department._count.users, 0);
+      const contactOverride = PUBLIC_DEPARTMENT_CONTACT_OVERRIDES[catalogItem.id];
 
       return {
         id: catalogItem.id,
         name: catalogItem.name,
         location: catalogItem.location || primaryDepartment?.location || "",
-        focalPerson: primaryDepartment?.focalPerson || catalogItem.focalPerson,
-        designation: primaryDepartment?.designation || catalogItem.designation,
-        email: primaryDepartment?.email || catalogItem.email,
-        phone: primaryDepartment?.phone || catalogItem.phone,
+        focalPerson: contactOverride?.focalPerson || primaryDepartment?.focalPerson || catalogItem.focalPerson,
+        designation: contactOverride?.designation || primaryDepartment?.designation || catalogItem.designation,
+        email: contactOverride?.email || primaryDepartment?.email || catalogItem.email,
+        phone: contactOverride?.phone || primaryDepartment?.phone || catalogItem.phone,
         staffUsers,
         knownStaffPositions,
         positionRecords: adaptivePositions.records,

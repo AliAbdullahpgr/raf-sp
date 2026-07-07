@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const MRI_FOCAL_PERSON = "Abid Hameed Khan";
+const MRI_DESIGNATION = "Scientific Officer Ento. MRI (Focal Person)";
+const MRI_EMAIL = "abidhameedkhan@yahoo.com";
+
 export async function GET() {
   try {
     const department = await prisma.department.findUnique({
@@ -31,7 +35,12 @@ export async function GET() {
     const vacantPosts = hrData.reduce((sum, item) => sum + (item.vacantOrNonFunctional || 0), 0);
 
     return NextResponse.json({
-      department,
+      department: {
+        ...department,
+        focalPerson: MRI_FOCAL_PERSON,
+        designation: MRI_DESIGNATION,
+        email: MRI_EMAIL,
+      },
       landData,
       buildingData,
       farmMachinery,

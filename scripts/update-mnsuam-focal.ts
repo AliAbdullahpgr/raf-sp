@@ -23,9 +23,9 @@ async function main() {
       },
       data: {
         focalPerson: 'MNSUAM Focal Person',
-        designation: '',
-        phone: '',
-        email: 'estatedata.focalperson@mnsuam.edu.pk',
+        designation: 'Director Estate',
+        phone: '+923045337311',
+        email: 'dem@mnsuam.edu.pk',
       },
     });
 

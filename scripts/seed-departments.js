@@ -58,10 +58,10 @@ const departments = [
     location: "Multan, Punjab",
     description:
       "Dedicated research facility for mango cultivation, varieties development, and post-harvest technologies.",
-    focalPerson: "Dr. Muhammad Tauseef",
-    designation: "Senior Scientist (Agronomy)",
-    phone: "+923340072357",
-    email: "tauseef@mri.gov.pk",
+    focalPerson: "Abid Hameed Khan",
+    designation: "Scientific Officer Ento. MRI (Focal Person)",
+    phone: "0300-6326987",
+    email: "abidhameedkhan@yahoo.com",
   },
   {
     name: "Agricultural Mechanization Research Institute",
@@ -78,10 +78,10 @@ const departments = [
     location: "MNS University of Agriculture, Multan",
     description:
       "Management of university infrastructure, facilities, and estate operations.",
-    focalPerson: "Engr. Ahmad Hassan",
-    designation: "Estate Manager",
-    phone: "+92-61-9210077",
-    email: "ahmad.hassan@mnsuam.edu.pk",
+    focalPerson: "MNSUAM Focal Person",
+    designation: "Director Estate",
+    phone: "+923045337311",
+    email: "dem@mnsuam.edu.pk",
   },
   {
     name: "Horticulture",

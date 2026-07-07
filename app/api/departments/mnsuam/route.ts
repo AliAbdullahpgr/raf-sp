@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const ESTATE_DESIGNATION = "Director Estate";
+const ESTATE_PHONE = "+923045337311";
+const ESTATE_EMAIL = "dem@mnsuam.edu.pk";
+
 export async function GET() {
   try {
     const department = await prisma.department.findUnique({
@@ -69,9 +73,9 @@ export async function GET() {
         location: department.location,
         description: department.description,
         focalPerson: department.focalPerson,
-        designation: department.designation,
-        phone: department.phone,
-        email: department.email,
+        designation: ESTATE_DESIGNATION,
+        phone: ESTATE_PHONE,
+        email: ESTATE_EMAIL,
         mnsuamEstateFacilities: facilities,
         agronomyLabEquipment: equipment,
         valueAdditionLabEquipment: valueAdditionEquipment,
@@ -96,8 +100,8 @@ export async function GET() {
       focalPersons: [
         {
           name: "MNSUAM Focal Person",
-          role: "MNSUAM Focal Person",
-          email: "estatedata.focalperson@mnsuam.edu.pk",
+          role: ESTATE_DESIGNATION,
+          email: ESTATE_EMAIL,
         },
         {
           name: "Dr. Nabeel Ahmad Ikram",

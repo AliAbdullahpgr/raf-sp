@@ -8,6 +8,10 @@ import { Building2, Users, Tractor, MapPin, Home, UserCheck, UserX, Ruler, Wareh
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
+const mriFocalPerson = "Abid Hameed Khan";
+const mriDesignation = "Scientific Officer Ento. MRI (Focal Person)";
+const mriEmail = "abidhameedkhan@yahoo.com";
+
 interface MRIAsset {
   id: string;
   name: string;
@@ -116,10 +120,10 @@ export function MRIPage() {
         description="Dedicated research facility for mango cultivation, variety development, post-harvest technologies, and quality improvement."
         image="/images/mango.jpg.jpg"
         focalPerson={{
-          name: "Mr. Abid Hameed Khan",
-          designation: "Scientific Officer- Entomology",
+          name: mriFocalPerson,
+          designation: mriDesignation,
           phone: "0300-6326987",
-          email: "abidhameedkhan@yahoo.com",
+          email: mriEmail,
         }}
       >
         <Card className="p-6">
@@ -148,10 +152,10 @@ export function MRIPage() {
       description={data.department.description || "Dedicated research facility for mango cultivation, variety development, post-harvest technologies, and quality improvement."}
       image="/images/mango.jpg.jpg"
       focalPerson={{
-        name: data.department.focalPerson || "Mr. Abid Hameed Khan",
-        designation: data.department.designation || "Scientific Officer- Entomology",
+        name: data.department.focalPerson || mriFocalPerson,
+        designation: data.department.designation || mriDesignation,
         phone: data.department.phone || "0300-6326987",
-        email: data.department.email || "abidhameedkhan@yahoo.com",
+        email: data.department.email || mriEmail,
       }}
     >
       <motion.div

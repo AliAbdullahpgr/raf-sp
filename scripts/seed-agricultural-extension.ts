@@ -36,9 +36,10 @@ async function main() {
         location: "Multan",
         description:
           "Agricultural Extension Wing - Provincial Agriculture Department office providing extension services",
-        focalPerson: "Deputy Director Agriculture (Ext)",
-        phone: "+92-XXX-XXXXXXX",
-        email: "ext@agripunjab.gov.pk",
+        focalPerson: "Mr. Shahzad Sabir",
+        designation: "Director Extension Multan",
+        phone: "0300 6632304; 0336 6232660",
+        email: "daextmultan@gmail.com",
       },
       create: {
         id: departmentId,
@@ -46,9 +47,10 @@ async function main() {
         location: "Multan",
         description:
           "Agricultural Extension Wing - Provincial Agriculture Department office providing extension services",
-        focalPerson: "Deputy Director Agriculture (Ext)",
-        phone: "+92-XXX-XXXXXXX",
-        email: "ext@agripunjab.gov.pk",
+        focalPerson: "Mr. Shahzad Sabir",
+        designation: "Director Extension Multan",
+        phone: "0300 6632304; 0336 6232660",
+        email: "daextmultan@gmail.com",
       },
     });
     console.log("Agricultural Extension Wing department ready");

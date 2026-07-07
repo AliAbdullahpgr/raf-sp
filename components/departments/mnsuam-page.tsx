@@ -116,6 +116,9 @@ interface MNSUAMData {
 }
 
 const piePalette = ["#166534", "#15803d", "#16a34a", "#22c55e", "#4ade80", "#86efac"];
+const estateDesignation = "Director Estate";
+const estatePhone = "+923045337311";
+const estateEmail = "dem@mnsuam.edu.pk";
 
 const getFacilityIcon = (type: string | null, name: string) => {
   const lowerName = name.toLowerCase();
@@ -263,9 +266,9 @@ export function MNSUAMPage() {
         image="/images/mnsuam_cover.jpg"
         focalPerson={{
           name: "MNSUAM Focal Person",
-          designation: "",
-          phone: "",
-          email: "estatedata.focalperson@mnsuam.edu.pk",
+          designation: estateDesignation,
+          phone: estatePhone,
+          email: estateEmail,
         }}
       >
         <Card className="p-6">
@@ -285,9 +288,9 @@ export function MNSUAMPage() {
       image="/images/mnsuam_cover.jpg"
       focalPerson={{
         name: data.department.focalPerson || "MNSUAM Focal Person",
-        designation: data.department.designation || "",
-        phone: data.department.phone || "",
-        email: data.department.email || "estatedata.focalperson@mnsuam.edu.pk",
+        designation: data.department.designation || estateDesignation,
+        phone: data.department.phone || estatePhone,
+        email: data.department.email || estateEmail,
       }}
     >
       <motion.div

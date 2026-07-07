@@ -73,6 +73,11 @@ const COLORS = [
   "#ef4444",
 ];
 
+const extensionFocalPerson = "Mr. Shahzad Sabir";
+const extensionDesignation = "Director Extension Multan";
+const extensionEmail = "daextmultan@gmail.com";
+const extensionPhone = "0300 6632304; 0336 6232660";
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -178,10 +183,10 @@ export function AgriculturalExtensionPage() {
       description={data.department.description}
       image="/images/agri_ext.jpg.jpg"
       focalPerson={{
-        name: data.department.focalPerson || "Deputy Director Agriculture (Ext)",
-        designation: "Deputy Director",
-        phone: data.department.phone || "+92-XXX-XXXXXXX",
-        email: data.department.email || "ext@agripunjab.gov.pk",
+        name: data.department.focalPerson || extensionFocalPerson,
+        designation: extensionDesignation,
+        phone: data.department.phone || extensionPhone,
+        email: data.department.email || extensionEmail,
       }}
     >
       <motion.div
