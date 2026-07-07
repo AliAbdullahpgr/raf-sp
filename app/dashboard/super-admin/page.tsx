@@ -676,7 +676,7 @@ export default function SuperAdminDashboard() {
       <TabsContent value="overview" className="mt-0 space-y-4">
       <section className="space-y-4">
         <SectionTitle
-          number="1"
+          number="2"
           title="Executive Snapshot"
           caption="High level operating position across departments, inventory, requests, and traffic."
         />
@@ -707,7 +707,7 @@ export default function SuperAdminDashboard() {
 
       <section className="space-y-4">
         <SectionTitle
-          number="2"
+          number="3"
           title="Priority Review"
           caption="A clean view of request movement across pending, approved, borrowed, returned, and not approved states."
         />
@@ -807,11 +807,6 @@ export default function SuperAdminDashboard() {
                     const pendingRequests = department.incomingRequests.pending + department.outgoingRequests.pending;
                     const overdueRequests = department.incomingRequests.overdue + department.outgoingRequests.overdue;
                     const openTotal = department.openIncoming + department.openOutgoing;
-                    const contactItems = [
-                      { label: "Focal", ready: Boolean(department.focalPerson) },
-                      { label: "Email", ready: Boolean(department.email) },
-                      { label: "Phone", ready: Boolean(department.phone) },
-                    ];
 
                     return (
                       <tr key={department.id} className="border-b border-slate-100 align-middle last:border-0 hover:bg-slate-50/70">
@@ -833,7 +828,11 @@ export default function SuperAdminDashboard() {
                                 </Badge>
                                 <Badge variant="outline" className="border-slate-200 bg-white text-[11px] text-slate-600">
                                   <Eye className="h-3 w-3" />
-                                  {formatNumber(department.publicViews + department.adminViews)} views
+                                  {formatNumber(department.publicViews)} public
+                                </Badge>
+                                <Badge variant="outline" className="border-slate-200 bg-white text-[11px] text-slate-600">
+                                  <Monitor className="h-3 w-3" />
+                                  {formatNumber(department.adminViews)} admin
                                 </Badge>
                               </div>
                             </div>
@@ -850,6 +849,11 @@ export default function SuperAdminDashboard() {
                                 <div className="h-full rounded-full bg-blue-600" style={{ width: `${department.availability}%` }} />
                               </div>
                               <div className="text-xs text-slate-500">{department.resources.needsRepair} repair</div>
+                              {department.vacantPositions > 0 && (
+                                <div className="text-xs font-medium text-blue-700">
+                                  {formatNumber(department.vacantPositions)} vacant posts
+                                </div>
+                              )}
                             </div>
                           ) : department.sanctionedPositions > 0 ? (
                             <div className="space-y-1">
@@ -882,22 +886,18 @@ export default function SuperAdminDashboard() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <div className="min-w-0">
-                            <div className="truncate text-xs font-medium text-slate-700">
-                              {department.focalPerson || "Missing focal person"}
+                          <div className="min-w-0 space-y-1.5 text-xs text-slate-600">
+                            <div className="flex items-center gap-1.5">
+                              <UserCheck className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                              <span className="truncate">{department.focalPerson || "Missing focal person"}</span>
                             </div>
-                            <div className="mt-2 flex flex-wrap gap-1.5">
-                              {contactItems.map((item) => (
-                                <Badge
-                                  key={item.label}
-                                  variant="outline"
-                                  className={`border-slate-200 text-[11px] ${
-                                    item.ready ? "bg-white text-slate-600" : "bg-slate-100 text-slate-500"
-                                  }`}
-                                >
-                                  {item.label}
-                                </Badge>
-                              ))}
+                            <div className="flex items-center gap-1.5">
+                              <Mail className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                              <span className="truncate">{department.email}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Phone className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                              <span className="truncate">{department.phone}</span>
                             </div>
                           </div>
                         </td>
@@ -945,7 +945,7 @@ export default function SuperAdminDashboard() {
       <TabsContent value="requests" className="mt-0 space-y-4">
         <section className="space-y-4">
           <SectionTitle
-            number="4"
+            number="5"
             title="Request Status Detail"
             caption="Compact counts for each request status. The full department-to-department flow stays visible above the tabs."
           />
@@ -1270,11 +1270,11 @@ export default function SuperAdminDashboard() {
                     </div>
                     <div className="flex items-center gap-2 rounded-lg bg-slate-50 p-3">
                       <Mail className="h-4 w-4 text-slate-400" />
-                      <span className="min-w-0 truncate">{selectedDepartment.email || "Missing email"}</span>
+                      <span className="min-w-0 truncate">{selectedDepartment.email}</span>
                     </div>
                     <div className="flex items-center gap-2 rounded-lg bg-slate-50 p-3">
                       <Phone className="h-4 w-4 text-slate-400" />
-                      <span className="min-w-0 truncate">{selectedDepartment.phone || "Missing phone"}</span>
+                      <span className="min-w-0 truncate">{selectedDepartment.phone}</span>
                     </div>
                   </CardContent>
                 </Card>
