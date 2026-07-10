@@ -1,8 +1,7 @@
 "use client";
 
-import { motion, useInView, animate } from "framer-motion";
+import { motion, useInView, animate, type Variants } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
-import Image from "next/image";
 import { Building2, FlaskConical, Users, Tractor, BarChart3, Database } from "lucide-react";
 
 const stats = [
@@ -44,12 +43,30 @@ const stats = [
 ];
 
 const partners = [
-  { src: "/icons/logo1.png", alt: "Partner 1" },
-  { src: "/icons/logo2.png.png", alt: "Partner 2" },
-  { src: "/icons/logo3.png", alt: "Partner 3" },
-  { src: "/icons/logo4.png", alt: "Partner 4" },
-  { src: "/icons/logo5.png", alt: "Partner 5" },
-  { src: "/icons/logo6.png", alt: "Partner 6" },
+  {
+    name: "mnsuam-logo",
+    alt: "Muhammad Nawaz Shareef University of Agriculture Multan",
+  },
+  {
+    name: "cotton-research-institute-multan-logo",
+    alt: "Cotton Research Institute Multan",
+  },
+  {
+    name: "soil-water-testing-lab-tando-allahyar-logo",
+    alt: "Soil and Water Testing Laboratory Tando Allahyar",
+  },
+  {
+    name: "mango-research-institute-multan-logo",
+    alt: "Mango Research Institute Multan",
+  },
+  {
+    name: "plant-protection-logo",
+    alt: "Plant Protection Institute",
+  },
+  {
+    name: "agriculture-department-punjab-logo",
+    alt: "Agriculture Department Punjab",
+  },
 ];
 
 function Counter({ value, suffix }: { value: number; suffix: string }) {
@@ -76,6 +93,55 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
       <span ref={ref}>0</span>
       {suffix}
     </span>
+  );
+}
+
+function PartnerLogo({ partner }: { partner: (typeof partners)[number] }) {
+  return (
+    <div className="relative flex h-24 w-24 flex-none items-center justify-center transition-transform duration-500 hover:scale-105 md:h-32 md:w-32">
+      <picture className="flex h-full w-full items-center justify-center">
+        <source srcSet={`/icons/${partner.name}.avif`} type="image/avif" />
+        <img
+          src={`/icons/${partner.name}.webp`}
+          alt={partner.alt}
+          width={128}
+          height={128}
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-contain drop-shadow-sm"
+        />
+      </picture>
+    </div>
+  );
+}
+
+function PartnerMarquee({ reverse = false }: { reverse?: boolean }) {
+  return (
+    <div className="flex overflow-hidden">
+      <motion.div
+        className="flex w-max flex-none items-center"
+        animate={{ x: reverse ? ["-50%", "0%"] : ["0%", "-50%"] }}
+        transition={{
+          x: {
+            repeat: Infinity,
+            repeatType: "loop",
+            duration: reverse ? 35 : 30,
+            ease: "linear",
+          },
+        }}
+      >
+        {[0, 1].map((groupIndex) => (
+          <div
+            key={groupIndex}
+            className="flex shrink-0 items-center gap-12 pr-12 md:gap-24 md:pr-24"
+          >
+            {partners.map((partner) => (
+              <PartnerLogo key={`${groupIndex}-${partner.name}`} partner={partner} />
+            ))}
+          </div>
+        ))}
+      </motion.div>
+    </div>
   );
 }
 
@@ -117,7 +183,7 @@ export function AboutSection() {
     trackVisitor();
   }, [hasTrackedVisit]);
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -127,7 +193,7 @@ export function AboutSection() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -216,121 +282,8 @@ export function AboutSection() {
 
             {/* Marquee Container */}
             <div className="flex flex-col gap-16">
-              {/* Row 1: Left Scroll */}
-              <div className="flex overflow-hidden group">
-                <motion.div
-                  className="flex gap-12 md:gap-24 min-w-full shrink-0 items-center justify-around"
-                  animate={{ x: [0, -1000] }}
-                  transition={{
-                    x: {
-                      repeat: Infinity,
-                      repeatType: "loop",
-                      duration: 30,
-                      ease: "linear",
-                    },
-                  }}
-                >
-                  {[...partners, ...partners, ...partners].map((partner, index) => (
-                    <div
-                      key={`row1-${index}`}
-                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center transition-transform duration-500 cursor-pointer hover:scale-105"
-                    >
-                      <Image
-                        src={partner.src}
-                        alt={partner.alt}
-                        fill
-                        className="object-contain drop-shadow-sm"
-                        sizes="(max-width: 768px) 96px, 128px"
-                      />
-                    </div>
-                  ))}
-                </motion.div>
-                <motion.div
-                  className="flex gap-12 md:gap-24 min-w-full shrink-0 items-center justify-around"
-                  animate={{ x: [0, -1000] }}
-                  transition={{
-                    x: {
-                      repeat: Infinity,
-                      repeatType: "loop",
-                      duration: 30,
-                      ease: "linear",
-                    },
-                  }}
-                >
-                  {[...partners, ...partners, ...partners].map((partner, index) => (
-                    <div
-                      key={`row1-dup-${index}`}
-                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center transition-transform duration-500 cursor-pointer hover:scale-105"
-                    >
-                      <Image
-                        src={partner.src}
-                        alt={partner.alt}
-                        fill
-                        className="object-contain drop-shadow-sm"
-                        sizes="(max-width: 768px) 96px, 128px"
-                      />
-                    </div>
-                  ))}
-                </motion.div>
-              </div>
-
-              {/* Row 2: Right Scroll (Reverse) */}
-              <div className="flex overflow-hidden group">
-                <motion.div
-                  className="flex gap-12 md:gap-24 min-w-full shrink-0 items-center justify-around"
-                  animate={{ x: [-1000, 0] }}
-                  transition={{
-                    x: {
-                      repeat: Infinity,
-                      repeatType: "loop",
-                      duration: 35,
-                      ease: "linear",
-                    },
-                  }}
-                >
-                  {[...partners, ...partners, ...partners].reverse().map((partner, index) => (
-                    <div
-                      key={`row2-${index}`}
-                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center transition-transform duration-500 cursor-pointer hover:scale-105"
-                    >
-                      <Image
-                        src={partner.src}
-                        alt={partner.alt}
-                        fill
-                        className="object-contain drop-shadow-sm"
-                        sizes="(max-width: 768px) 96px, 128px"
-                      />
-                    </div>
-                  ))}
-                </motion.div>
-                <motion.div
-                  className="flex gap-12 md:gap-24 min-w-full shrink-0 items-center justify-around"
-                  animate={{ x: [-1000, 0] }}
-                  transition={{
-                    x: {
-                      repeat: Infinity,
-                      repeatType: "loop",
-                      duration: 35,
-                      ease: "linear",
-                    },
-                  }}
-                >
-                  {[...partners, ...partners, ...partners].reverse().map((partner, index) => (
-                    <div
-                      key={`row2-dup-${index}`}
-                      className="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center transition-transform duration-500 cursor-pointer hover:scale-105"
-                    >
-                      <Image
-                        src={partner.src}
-                        alt={partner.alt}
-                        fill
-                        className="object-contain drop-shadow-sm"
-                        sizes="(max-width: 768px) 96px, 128px"
-                      />
-                    </div>
-                  ))}
-                </motion.div>
-              </div>
+              <PartnerMarquee />
+              <PartnerMarquee reverse />
             </div>
           </motion.div>
         </motion.div>
